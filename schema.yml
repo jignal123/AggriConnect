@@ -1,0 +1,97 @@
+openapi: 3.0.3
+info:
+  title: Aggriconnect API
+  version: 1.0.0
+  description: This Api is helps you to get idea about how API will hit with how many
+    parameters and request type and it also helps you to test it
+paths:
+  /admin-api/password-reset-confirm/:
+    post:
+      operationId: admin_api_password_reset_confirm_create
+      tags:
+      - admin-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetConfirm'
+          description: ''
+  /admin-api/password-reset-request/:
+    post:
+      operationId: admin_api_password_reset_request_create
+      tags:
+      - admin-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetRequest'
+          description: ''
+components:
+  schemas:
+    PasswordResetConfirm:
+      type: object
+      properties:
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+        uidb64:
+          type: string
+        token:
+          type: string
+      required:
+      - password
+      - token
+      - uidb64
+    PasswordResetRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
