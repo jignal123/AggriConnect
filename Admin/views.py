@@ -7,6 +7,12 @@ from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
 from .serializer import PasswordResetRequestSerializer,PasswordResetConfirmSerializer
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAdminUser
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.cache import cache
+from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.exceptions import InvalidToken
 # Create your views here.
 
 class PasswordResetRequest(generics.GenericAPIView):
@@ -47,3 +53,33 @@ class PasswordResetConfirm(generics.GenericAPIView):
 
             return Response({"message":"Password Changed Successfully!"},status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+class LogoutView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self,request):
+        access = request.auth
+        refresh = RefreshToken(request.data["refresh"])
+        self.blacklist_token(access)
+        self.blacklist_token(refresh)
+        return JsonResponse({
+            "details":"Logged out Successfully!"
+        })
+    
+    def blacklist_token(self,token):
+        jti = token.get("jti")
+        exp = token.get("exp")
+        now = token.current_time.timestamp()
+        storetill = int(exp-now)
+        cache.set(f"blacklist({jti})","true",timeout=storetill)
+
+class RedisTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        refresh = RefreshToken(request.data["refresh"])
+        jti = refresh["jti"]
+
+        if cache.get(f"blacklist({jti})",None):
+            raise InvalidToken({
+                "detail":"Refresh Token is Invalid or expired!"
+            })
+        return super().post(request, *args, **kwargs)
