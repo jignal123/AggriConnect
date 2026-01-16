@@ -135,13 +135,14 @@ AUTH_USER_MODEL = 'Admin.Admin'
 
 SIMPLE_JWT = {
     # 'USER_ID_FIELD': 'student_id', # The name of your custom field
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
     # ... other settings
 }
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':  [
+        'Admin.authentication.RedisBlackListJWTAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
@@ -155,6 +156,7 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'This Api is helps you to get idea about how API will hit with how many parameters and request type and it also helps you to test it',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
     # OTHER SETTINGS
 }
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -163,3 +165,13 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = "202500819010083@glsu.edu.in"
 EMAIL_HOST_PASSWORD = "xjpk ucgr jvur biit"
 EMAIL_USE_TLS = True
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}

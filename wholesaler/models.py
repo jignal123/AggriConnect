@@ -39,7 +39,15 @@ class Wholesaler(AbstractClassForAll):
             )
         ])
     w_photo = models.ImageField(upload_to="wholesaler/",blank=True,null=True)
-    aadhar_no = models.CharField(max_length=12,unique=True,error_messages={
+    aadhar_no = models.CharField(
+        max_length=12,
+        validators=[
+            RegexValidator(
+                regex=r"^[2-9]{1}[0-9]{11}$",
+                message="Invalid Adhaar card Number. Please Enter Valid Adhaar card Number"
+            )
+        ],
+        unique=True,error_messages={
         "unique": _("Adhaar No Alredy Exist in the site")
     })
     business_proof = models.FileField(upload_to="wholesaler/business_proof/")
