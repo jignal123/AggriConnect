@@ -3,6 +3,10 @@ from . import views
 from rest_framework_simplejwt.views import(
     TokenObtainPairView,
 )
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register("crop",views.CropViewSet,basename="cropMaster")
 
 urlpatterns = [
     path("password-reset-request/",views.PasswordResetRequest.as_view(),name="password-reset-request"),
@@ -11,3 +15,5 @@ urlpatterns = [
     path("api/token/refresh/",views.RedisTokenRefreshView.as_view(),name="token_refresh"),
     path("logout/",views.LogoutView.as_view(),name="logout"),
 ]
+
+urlpatterns += router.urls
