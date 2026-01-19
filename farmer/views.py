@@ -18,12 +18,15 @@ class CommonViewSet(
     This is The common Viewset which will allow specific requests
     in the viewsets. This is only for Model Viewsets
     """
-
-    pass
+    myfields = (
+        "deleted",
+        "created_at",
+        "updated_at"
+    )
 
 
 class FarmerViewSet(CommonViewSet):
-    my_fields = (
+    myfields = CommonViewSet.myfields + (
         "f_id",
         "user_name",
         "password",
@@ -38,7 +41,7 @@ class FarmerViewSet(CommonViewSet):
         "f_photo",
         "aadhar_no",
     )
-    queryset = Farmer.objects.only(*my_fields)
+    queryset = Farmer.objects.only(*myfields)
     serializer_class = FarmerSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]

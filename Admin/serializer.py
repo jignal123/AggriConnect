@@ -2,15 +2,30 @@ from rest_framework import serializers
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode
 from .models import Admin
+from farmer.models import CropMaster
+
+
+class MetaAbstract:
+    fields = (
+        "deleted",
+        "created_at",
+        "updated_at",
+    )
+    read_only_fields = (
+        "created_at",
+        "updated_at",
+    )
+
 
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     class Meta:
-        fields = ("email")
+        fields = "email"
+
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
-    password = serializers.CharField(write_only=True,min_length=8)
+    password = serializers.CharField(write_only=True, min_length=8)
     uidb64 = serializers.CharField()
     token = serializers.CharField()
 
@@ -18,9 +33,21 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         try:
             uid = urlsafe_base64_decode(data["uidb64"]).decode()
             admin = Admin.objects.get(pk=uid)
-        except (ValueError,OverflowError,TypeError,Admin.DoesNotExist):
-            raise serializers.ValidationError({"uidb64":"Invalid UID"})
-        
-        if not PasswordResetTokenGenerator().check_token(admin,data["token"]):
-            raise serializers.ValidationError({"token":"Token is Invalid or Expired"})
+        except (ValueError, OverflowError, TypeError, Admin.DoesNotExist):
+            raise serializers.ValidationError({"uidb64": "Invalid UID"})
+
+        if not PasswordResetTokenGenerator().check_token(admin, data["token"]):
+            raise serializers.ValidationError({"token": "Token is Invalid or Expired"})
         return data
+
+
+class CropMasterSerializer(serializers.ModelSerializer):
+    class Meta(MetaAbstract):
+        model = CropMaster
+        fields = MetaAbstract.fields + (
+            "crop_id",
+            "crop_name",
+            "crop_variety",
+            "photo",
+            "description",
+        )
