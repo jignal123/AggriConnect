@@ -3,7 +3,8 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode
 from .models import Admin
 from farmer.models import CropMaster
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+import json
 
 class MetaAbstract:
     fields = (
@@ -15,6 +16,18 @@ class MetaAbstract:
         "created_at",
         "updated_at",
     )
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls,user):
+        token = super().get_token(user)
+        token["email"] = user.email
+        token["address"] = user.address
+        token["first_name"] = user.first_name
+        token["last_name"] = user.last_name
+        token["a_photo"] = str(user.a_photo)
+
+        return token
 
 
 class PasswordResetRequestSerializer(serializers.Serializer):
