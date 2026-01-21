@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "rest_framework",
     'rest_framework_simplejwt',
     'drf_spectacular',
+    'silk',
 ]
 
 MIDDLEWARE = [
@@ -53,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'silk.middleware.SilkyMiddleware'
 ]
 
 ROOT_URLCONF = 'aggriconnect.urls'
@@ -137,6 +139,7 @@ SIMPLE_JWT = {
     # 'USER_ID_FIELD': 'student_id', # The name of your custom field
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
+    'TOKEN_OBTAIN_SERIALIZER': "Admin.serializer.MyTokenObtainPairSerializer"
     # ... other settings
 }
 

@@ -17,6 +17,7 @@ from rest_framework_simplejwt.exceptions import InvalidToken
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter,SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 # Create your views here.
 class MyCustomViewSet(
@@ -35,6 +36,9 @@ class MyCustomViewSet(
         "created_at",
         "updated_at"
     )
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 
 class PasswordResetRequest(generics.GenericAPIView):
     serializer_class = PasswordResetRequestSerializer

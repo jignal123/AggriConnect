@@ -78,7 +78,7 @@ class StockDetail(AbstractClassForAll):
         TON = "TON", _("Metric Tons")
         QUINTAL = "Q", _("Quintal (100kg)")
 
-    stock_id = models.ForeignKey(StockMaster, on_delete=models.CASCADE)
+    stock_id = models.ForeignKey(StockMaster, on_delete=models.CASCADE,related_name="items")
     harvested_date = models.DateField(default=date.today)
     hectares = models.DecimalField(
         max_digits=8, decimal_places=2, blank=True, null=True
