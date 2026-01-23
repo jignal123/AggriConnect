@@ -1,7 +1,9 @@
 from rest_framework import serializers
-from .models import Farmer, StockDetail, StockMaster
+from .models import Farmer, StockDetail, StockMaster, Listing
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
+from django.db.models import Q
+
 
 class MetaAbstract:
     fields = (
@@ -56,7 +58,11 @@ class FarmerSerializer(serializers.ModelSerializer):
 
 class StockDetailTableSerializer(serializers.ModelSerializer):
     crop_name = serializers.CharField(read_only=True)
-    farmer_name = serializers.CharField(read_only=True,source="first_name")
+    farmer_name = serializers.CharField(read_only=True, source="first_name")
+    total_price = serializers.DecimalField(
+        read_only=True, max_digits=20, decimal_places=2
+    )
+
     class Meta(MetaAbstract):
         model = StockDetail
         fields = MetaAbstract.fields + (
@@ -71,26 +77,37 @@ class StockDetailTableSerializer(serializers.ModelSerializer):
             "stored_location",
             "crop_name",
             "farmer_name",
+            "total_price",
         )
 
+
 class StockDetailSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = StockDetail
-            fields = (
-                "harvested_date",
-                "hectares",
-                "quantity",
-                "unit",
-                "price_per_unit",
-                "expiry_date",
-                "stored_location",
-            )
+    total_price = serializers.DecimalField(
+        read_only=True, max_digits=20, decimal_places=2
+    )
+
+    class Meta:
+        model = StockDetail
+        fields = (
+            "harvested_date",
+            "hectares",
+            "quantity",
+            "unit",
+            "price_per_unit",
+            "expiry_date",
+            "stored_location",
+            "total_price",
+        )
+
+
 class StockMasterCreateSerializer(serializers.ModelSerializer):
     """
     StockMasterCreateSerializer is for Only Creating a Stock Because
     Insertion of Stock Should Be with Stock Items
     """
+
     items = StockDetailSerializer(many=True)
+
     class Meta:
         model = StockMaster
         fields = (
@@ -99,19 +116,22 @@ class StockMasterCreateSerializer(serializers.ModelSerializer):
             "farmer_id",
             "items",
         )
+
     def create(self, validated_data):
         with transaction.atomic():
             stockDetail = validated_data.pop("items")
             stock_id = StockMaster.objects.create(**validated_data)
 
             for item in stockDetail:
-                StockDetail.objects.create(stock_id = stock_id, **item)
+                StockDetail.objects.create(stock_id=stock_id, **item)
 
             return stock_id
 
+
 class StockMasterSerializer(serializers.ModelSerializer):
     crop_name = serializers.CharField(read_only=True)
-    farmer_name = serializers.CharField(read_only=True,source="first_name")
+    farmer_name = serializers.CharField(read_only=True, source="first_name")
+
     class Meta(MetaAbstract):
         model = StockMaster
         fields = MetaAbstract.fields + (
@@ -122,10 +142,12 @@ class StockMasterSerializer(serializers.ModelSerializer):
             "farmer_id",
         )
 
+
 class StockMasterRetrieveSerializer(serializers.ModelSerializer):
-    items = StockDetailSerializer(many=True,read_only=True)
+    items = StockDetailSerializer(many=True, read_only=True)
     crop_name = serializers.CharField(read_only=True)
-    farmer_name = serializers.CharField(read_only=True,source="first_name")
+    farmer_name = serializers.CharField(read_only=True, source="first_name")
+
     class Meta(MetaAbstract):
         model = StockMaster
         fields = MetaAbstract.fields + (
@@ -134,3 +156,82 @@ class StockMasterRetrieveSerializer(serializers.ModelSerializer):
             "crop_name",
             "farmer_name",
         )
+
+
+class ListingRetrieveSerializer(serializers.ModelSerializer):
+    stock_detail = StockDetailTableSerializer(read_only=True)
+    crop_name = serializers.CharField(read_only=True)
+    farmer_name = serializers.CharField(read_only=True, source="first_name")
+    class Meta(MetaAbstract):
+        model = Listing
+        fields = MetaAbstract.fields + (
+            "l_id",
+            "stock_detail",
+            "qty_available",
+            "price_per_unit",
+            "status",
+            "crop_name",
+            "farmer_name",
+        )
+
+
+class ListingSerializer(serializers.ModelSerializer):
+    crop_name = serializers.CharField(read_only=True)
+    farmer_name = serializers.CharField(read_only=True, source="first_name")
+
+    class Meta(MetaAbstract):
+        model = Listing
+        fields = MetaAbstract.fields + (
+            "l_id",
+            "qty_available",
+            "price_per_unit",
+            "status",
+            "crop_name",
+            "farmer_name",
+            "stock_detail",
+        )
+
+    def validate_qty_available(self, data):
+
+        req = self.get_initial()
+        original = self.instance
+        stockdetail_id = req.get(
+            "stock_detail",
+            getattr(
+                (
+                    original.stock_detail
+                    if hasattr(original, "stock_detail")
+                    else object
+                ),
+                "id",
+                None,
+            ),
+        )
+
+        # print(stockdetail_id)
+        primary = getattr(original, "l_id", False)
+        original_stock = StockDetail.objects.filter(pk=stockdetail_id).values(
+            "quantity"
+        )[0]["quantity"]
+        if original_stock < data:
+            raise serializers.ValidationError(
+                "Available Quantity Should not exceed Original Quantity"
+            )
+        else:
+            if primary:
+                existing_listing = Listing.objects.filter(
+                    ~Q(l_id=primary), stock_detail=stockdetail_id
+                ).values("qty_available")
+            else:
+                existing_listing = Listing.objects.filter(
+                    stock_detail=stockdetail_id
+                ).values("qty_available")
+            avl_qty = original_stock - data
+            for listing in existing_listing:
+                avl_qty -= listing["qty_available"]
+                if avl_qty < 0:
+                    raise serializers.ValidationError(
+                        "Unable to save listing: the total quantity from existing listings plus the entered quantity exceeds the original quantity."
+                    )
+
+        return data

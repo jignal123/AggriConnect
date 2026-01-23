@@ -6,7 +6,8 @@ from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
-from django.db.models import F
+from django.db.models import F, OuterRef, Subquery
+
 
 class CommonViewSet(
     mixins.CreateModelMixin,
@@ -68,15 +69,17 @@ class StockDetailTableViewSet(CommonViewSet):
         "stored_location",
     ]
     extra_fields = {
-        "crop_name" : F("stock_id__crop_id__crop_name"),
-        "first_name" : F("stock_id__farmer_id__first_name")
+        "crop_name": F("stock_id__crop_id__crop_name"),
+        "first_name": F("stock_id__farmer_id__first_name"),
     }
-    queryset = StockDetail.objects.select_related(
-        "stock_id__crop_id", "stock_id__farmer_id"
-    ).annotate(**extra_fields).only(*myfields)
+    queryset = (
+        StockDetail.objects.select_related("stock_id__crop_id", "stock_id__farmer_id")
+        .annotate(**extra_fields)
+        .only(*myfields)
+    )
     serializer_class = StockDetailTableSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend,OrderingFilter,SearchFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     pagination_class = LimitOffsetPagination
 
 
@@ -90,13 +93,18 @@ class StockMasterViewSet(CommonViewSet):
         "farmer_id__first_name",
     ]
     extra_fields = {
-        "crop_name" : F("crop_id__crop_name"),
-        "first_name" : F("farmer_id__first_name")
+        "crop_name": F("crop_id__crop_name"),
+        "first_name": F("farmer_id__first_name"),
     }
-    queryset = StockMaster.objects.select_related("crop_id","farmer_id").prefetch_related("items").annotate(**extra_fields).only(*myfields)
+    queryset = (
+        StockMaster.objects.select_related("crop_id", "farmer_id")
+        .prefetch_related("items")
+        .annotate(**extra_fields)
+        .only(*myfields)
+    )
     serializer_class = StockMasterSerializer
     pagination_class = LimitOffsetPagination
-    filter_backends = [DjangoFilterBackend,OrderingFilter,SearchFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
@@ -106,12 +114,57 @@ class StockMasterViewSet(CommonViewSet):
             self.serializer_class = StockMasterCreateSerializer
 
         return super().get_serializer_class()
-    
+
     def get_queryset(self):
         if self.action == "list":
             if "items" in self.myfields:
                 self.myfields.remove("items")
-            self.queryset = StockMaster.objects.select_related("crop_id","farmer_id").annotate(**self.extra_fields).only(*self.myfields)
+            self.queryset = (
+                StockMaster.objects.select_related("crop_id", "farmer_id")
+                .annotate(**self.extra_fields)
+                .only(*self.myfields)
+            )
         return super().get_queryset()
-    
-    
+
+
+class ListingViewSet(CommonViewSet):
+    myfields = CommonViewSet.myfields + [
+        "l_id",
+        "qty_available",
+        "price_per_unit",
+        "status",
+        "stock_detail",
+    ]
+    extra_fields = {
+        "crop_name": F("stock_detail__stock_id__crop_id__crop_name"),
+        "first_name": F("stock_detail__stock_id__farmer_id__first_name"),
+    }
+    queryset = Listing.objects.select_related("stock_detail").annotate(**extra_fields).only(*myfields)
+    serializer_class = ListingSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    permission_classes = [IsAuthenticated]
+    pagination_class = LimitOffsetPagination
+    search_fields = [
+        "l_id",
+        "qty_available",
+        "price_per_unit",
+        "status",
+    ]
+    filterset_fields = [
+        "l_id",
+        "qty_available",
+        "price_per_unit",
+        "status",
+    ]
+
+    def get_queryset(self):
+        if self.action != "retrieve":
+            if "stock_detail__id" not in self.myfields:
+                self.myfields.append("stock_detail__id")
+                return super().get_queryset().only(*self.myfields)
+        return super().get_queryset()
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            self.serializer_class = ListingRetrieveSerializer
+        return super().get_serializer_class()
