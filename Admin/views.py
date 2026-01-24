@@ -18,7 +18,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter,SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework_simplejwt.views import TokenObtainPairView
-
+from .filters import *
 # Create your views here.
 class MyCustomViewSet(
     mixins.CreateModelMixin,
@@ -52,7 +52,7 @@ class PasswordResetRequest(generics.GenericAPIView):
                 uidb64 = urlsafe_base64_encode(force_bytes(admin.pk))
                 token = PasswordResetTokenGenerator().make_token(admin)
 
-                reset_link = f"http://localhost/{uidb64}/{token}"
+                reset_link = f"http://localhost:3000/password-reset-confirm/{uidb64}/{token}"
                 # print(reset_link)
                 send_mail(
                     "Password Change Request",
@@ -129,6 +129,12 @@ class CropViewSet(MyCustomViewSet):
     permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend,OrderingFilter,SearchFilter]
     pagination_class = LimitOffsetPagination
+    search_fields = [
+        "crop_name",
+        "crop_variety",
+        "description",
+    ]
+    filterset_class = CropFilter
 
     def get_permissions(self):
         if self.action == "list":
