@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import viewsets, mixins
 from .models import Farmer, StockDetail, StockMaster
 from .serializer import *
@@ -6,8 +5,8 @@ from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
-from django.db.models import F, OuterRef, Subquery
-
+from django.db.models import F
+from .filters import *
 
 class CommonViewSet(
     mixins.CreateModelMixin,
@@ -28,7 +27,6 @@ class FarmerViewSet(CommonViewSet):
     myfields = CommonViewSet.myfields + [
         "f_id",
         "user_name",
-        "password",
         "first_name",
         "last_name",
         "gender",
@@ -45,6 +43,20 @@ class FarmerViewSet(CommonViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     pagination_class = LimitOffsetPagination
+    filterset_class = FarmerFilter
+    search_filter = [
+        "f_id",
+        "user_name",
+        "first_name",
+        "last_name",
+        "gender",
+        "sub_district",
+        "state",
+        "address",
+        "ekyf_id",
+        "f_phone",
+        "aadhar_no",
+    ]
 
     def get_permissions(self):
         if self.action == "create":
@@ -81,7 +93,19 @@ class StockDetailTableViewSet(CommonViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     pagination_class = LimitOffsetPagination
-
+    filterset_class = StockDetailFilter
+    search_fields = [
+        "stock_id__crop_id__crop_name",
+        "stock_id__farmer_id__first_name",
+        "harvested_date",
+        "hectares",
+        "quantity",
+        "unit",
+        "price_per_unit",
+        "expiry_date",
+        "stored_location",
+    ]
+    ordering_fields = "__all__"
 
 class StockMasterViewSet(CommonViewSet):
     myfields = CommonViewSet.myfields + [
@@ -106,6 +130,12 @@ class StockMasterViewSet(CommonViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     permission_classes = [IsAuthenticated]
+    filterset_class = CommonFilter
+    search_fields = [
+        "crop_id__crop_name",
+        "farmer_id__first_name",
+    ]
+    ordering_fields = "__all__"
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -144,18 +174,16 @@ class ListingViewSet(CommonViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     permission_classes = [IsAuthenticated]
     pagination_class = LimitOffsetPagination
+    filterset_class = ListingFilter
     search_fields = [
         "l_id",
         "qty_available",
         "price_per_unit",
         "status",
+        "stock_detail__stock_id__crop_id__crop_name",
+        "stock_detail__stock_id__farmer_id__first_name",
     ]
-    filterset_fields = [
-        "l_id",
-        "qty_available",
-        "price_per_unit",
-        "status",
-    ]
+    ordering_fields = "__all__"
 
     def get_queryset(self):
         if self.action != "retrieve":
