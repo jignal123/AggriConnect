@@ -17,21 +17,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TokenObtainPair'
+              $ref: '#/components/schemas/MyTokenObtainPairRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/TokenObtainPair'
+              $ref: '#/components/schemas/MyTokenObtainPairRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/TokenObtainPair'
+              $ref: '#/components/schemas/MyTokenObtainPairRequest'
         required: true
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenObtainPair'
-          description: ''
+          description: No response body
   /admin-api/api/token/refresh/:
     post:
       operationId: admin_api_api_token_refresh_create
@@ -44,13 +40,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TokenRefresh'
+              $ref: '#/components/schemas/TokenRefreshRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/TokenRefresh'
+              $ref: '#/components/schemas/TokenRefreshRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/TokenRefresh'
+              $ref: '#/components/schemas/TokenRefreshRequest'
         required: true
       responses:
         '200':
@@ -59,69 +55,61 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenRefresh'
           description: ''
-  /admin-api/password-reset-confirm/:
-    post:
-      operationId: admin_api_password_reset_confirm_create
-      tags:
-      - admin-api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PasswordResetConfirm'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PasswordResetConfirm'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PasswordResetConfirm'
-        required: true
-      security:
-      - jwtAuth: []
-      - cookieAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PasswordResetConfirm'
-          description: ''
-  /admin-api/password-reset-request/:
-    post:
-      operationId: admin_api_password_reset_request_create
-      tags:
-      - admin-api
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PasswordResetRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PasswordResetRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PasswordResetRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      - cookieAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PasswordResetRequest'
-          description: ''
-  /farmer-api/farmer/:
+  /admin-api/crop/:
     get:
-      operationId: farmer_api_farmer_list
+      operationId: admin_api_crop_list
       description: |-
         This is The common Viewset which will allow specific requests
         in the viewsets. This is only for Model Viewsets
       parameters:
+      - in: query
+        name: crop_name__icontains
+        schema:
+          type: string
+      - in: query
+        name: crop_name__iendswith
+        schema:
+          type: string
+      - in: query
+        name: crop_name__iexact
+        schema:
+          type: string
+      - in: query
+        name: crop_name__istartswith
+        schema:
+          type: string
+      - in: query
+        name: crop_variety__icontains
+        schema:
+          type: string
+      - in: query
+        name: crop_variety__iendswith
+        schema:
+          type: string
+      - in: query
+        name: crop_variety__iexact
+        schema:
+          type: string
+      - in: query
+        name: crop_variety__istartswith
+        schema:
+          type: string
+      - in: query
+        name: description__icontains
+        schema:
+          type: string
+      - in: query
+        name: description__iendswith
+        schema:
+          type: string
+      - in: query
+        name: description__iexact
+        schema:
+          type: string
+      - in: query
+        name: description__istartswith
+        schema:
+          type: string
       - name: limit
         required: false
         in: query
@@ -147,6 +135,413 @@ paths:
         schema:
           type: string
       tags:
+      - admin-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCropMasterList'
+          description: ''
+    post:
+      operationId: admin_api_crop_create
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      tags:
+      - admin-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CropMasterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CropMasterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CropMasterRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CropMaster'
+          description: ''
+  /admin-api/crop/{crop_id}/:
+    get:
+      operationId: admin_api_crop_retrieve
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: crop_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this crop master.
+        required: true
+      tags:
+      - admin-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CropMaster'
+          description: ''
+    put:
+      operationId: admin_api_crop_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: crop_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this crop master.
+        required: true
+      tags:
+      - admin-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CropMasterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CropMasterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CropMasterRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CropMaster'
+          description: ''
+    patch:
+      operationId: admin_api_crop_partial_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: crop_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this crop master.
+        required: true
+      tags:
+      - admin-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCropMasterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCropMasterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCropMasterRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CropMaster'
+          description: ''
+  /admin-api/logout/:
+    post:
+      operationId: admin_api_logout_create
+      tags:
+      - admin-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /admin-api/password-reset-confirm/:
+    post:
+      operationId: admin_api_password_reset_confirm_create
+      tags:
+      - admin-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirmRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetConfirm'
+          description: ''
+  /admin-api/password-reset-request/:
+    post:
+      operationId: admin_api_password_reset_request_create
+      tags:
+      - admin-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetRequest'
+          description: ''
+  /farmer-api/farmer/:
+    get:
+      operationId: farmer_api_farmer_list
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: query
+        name: aadhar_no__icontains
+        schema:
+          type: string
+      - in: query
+        name: aadhar_no__iendswith
+        schema:
+          type: string
+      - in: query
+        name: aadhar_no__iexact
+        schema:
+          type: string
+      - in: query
+        name: aadhar_no__istartswith
+        schema:
+          type: string
+      - in: query
+        name: address__icontains
+        schema:
+          type: string
+      - in: query
+        name: address__iendswith
+        schema:
+          type: string
+      - in: query
+        name: address__iexact
+        schema:
+          type: string
+      - in: query
+        name: address__istartswith
+        schema:
+          type: string
+      - in: query
+        name: ekyf_id__icontains
+        schema:
+          type: string
+      - in: query
+        name: ekyf_id__iendswith
+        schema:
+          type: string
+      - in: query
+        name: ekyf_id__iexact
+        schema:
+          type: string
+      - in: query
+        name: ekyf_id__istartswith
+        schema:
+          type: string
+      - in: query
+        name: f_phone__icontains
+        schema:
+          type: string
+      - in: query
+        name: f_phone__iendswith
+        schema:
+          type: string
+      - in: query
+        name: f_phone__iexact
+        schema:
+          type: string
+      - in: query
+        name: f_phone__istartswith
+        schema:
+          type: string
+      - in: query
+        name: first_name__icontains
+        schema:
+          type: string
+      - in: query
+        name: first_name__iendswith
+        schema:
+          type: string
+      - in: query
+        name: first_name__iexact
+        schema:
+          type: string
+      - in: query
+        name: first_name__istartswith
+        schema:
+          type: string
+      - in: query
+        name: gender__icontains
+        schema:
+          type: string
+      - in: query
+        name: gender__iendswith
+        schema:
+          type: string
+      - in: query
+        name: gender__iexact
+        schema:
+          type: string
+      - in: query
+        name: gender__istartswith
+        schema:
+          type: string
+      - in: query
+        name: last_name__icontains
+        schema:
+          type: string
+      - in: query
+        name: last_name__iendswith
+        schema:
+          type: string
+      - in: query
+        name: last_name__iexact
+        schema:
+          type: string
+      - in: query
+        name: last_name__istartswith
+        schema:
+          type: string
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: state__icontains
+        schema:
+          type: string
+      - in: query
+        name: state__iendswith
+        schema:
+          type: string
+      - in: query
+        name: state__iexact
+        schema:
+          type: string
+      - in: query
+        name: state__istartswith
+        schema:
+          type: string
+      - in: query
+        name: sub_district__icontains
+        schema:
+          type: string
+      - in: query
+        name: sub_district__iendswith
+        schema:
+          type: string
+      - in: query
+        name: sub_district__iexact
+        schema:
+          type: string
+      - in: query
+        name: sub_district__istartswith
+        schema:
+          type: string
+      - in: query
+        name: user_name__icontains
+        schema:
+          type: string
+      - in: query
+        name: user_name__iendswith
+        schema:
+          type: string
+      - in: query
+        name: user_name__iexact
+        schema:
+          type: string
+      - in: query
+        name: user_name__istartswith
+        schema:
+          type: string
+      tags:
       - farmer-api
       security:
       - jwtAuth: []
@@ -167,15 +562,15 @@ paths:
       - farmer-api
       requestBody:
         content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Farmer'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Farmer'
           application/json:
             schema:
-              $ref: '#/components/schemas/Farmer'
+              $ref: '#/components/schemas/FarmerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FarmerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FarmerRequest'
         required: true
       security:
       - jwtAuth: []
@@ -229,15 +624,15 @@ paths:
       - farmer-api
       requestBody:
         content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Farmer'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Farmer'
           application/json:
             schema:
-              $ref: '#/components/schemas/Farmer'
+              $ref: '#/components/schemas/FarmerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FarmerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FarmerRequest'
         required: true
       security:
       - jwtAuth: []
@@ -265,15 +660,15 @@ paths:
       - farmer-api
       requestBody:
         content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedFarmer'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedFarmer'
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedFarmer'
+              $ref: '#/components/schemas/PatchedFarmerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFarmerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFarmerRequest'
       security:
       - jwtAuth: []
       - cookieAuth: []
@@ -284,11 +679,1625 @@ paths:
               schema:
                 $ref: '#/components/schemas/Farmer'
           description: ''
+  /farmer-api/listing/:
+    get:
+      operationId: farmer_api_listing_list
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: query
+        name: crop_name
+        schema:
+          type: string
+      - in: query
+        name: farmer_name
+        schema:
+          type: string
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: price_per_unit__gt
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__gte
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__iexact
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__lt
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__lte
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__range
+        schema:
+          type: array
+          items:
+            type: number
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: qty_available__gt
+        schema:
+          type: number
+      - in: query
+        name: qty_available__gte
+        schema:
+          type: number
+      - in: query
+        name: qty_available__iexact
+        schema:
+          type: number
+      - in: query
+        name: qty_available__lt
+        schema:
+          type: number
+      - in: query
+        name: qty_available__lte
+        schema:
+          type: number
+      - in: query
+        name: qty_available__range
+        schema:
+          type: array
+          items:
+            type: number
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status__icontains
+        schema:
+          type: string
+      - in: query
+        name: status__iendswith
+        schema:
+          type: string
+      - in: query
+        name: status__iexact
+        schema:
+          type: string
+      - in: query
+        name: status__istartswith
+        schema:
+          type: string
+      tags:
+      - farmer-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedListingList'
+          description: ''
+    post:
+      operationId: farmer_api_listing_create
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      tags:
+      - farmer-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListingRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ListingRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ListingRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Listing'
+          description: ''
+  /farmer-api/listing/{l_id}/:
+    get:
+      operationId: farmer_api_listing_retrieve
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: l_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this listing.
+        required: true
+      tags:
+      - farmer-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListingRetrieve'
+          description: ''
+    put:
+      operationId: farmer_api_listing_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: l_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this listing.
+        required: true
+      tags:
+      - farmer-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListingRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ListingRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ListingRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Listing'
+          description: ''
+    patch:
+      operationId: farmer_api_listing_partial_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: l_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this listing.
+        required: true
+      tags:
+      - farmer-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedListingRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedListingRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedListingRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Listing'
+          description: ''
+  /farmer-api/stock-detail/:
+    get:
+      operationId: farmer_api_stock_detail_list
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: query
+        name: crop_name
+        schema:
+          type: string
+      - in: query
+        name: expiry_date__day
+        schema:
+          type: number
+      - in: query
+        name: expiry_date__gt
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: expiry_date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: expiry_date__iexact
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: expiry_date__lt
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: expiry_date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: expiry_date__month
+        schema:
+          type: number
+      - in: query
+        name: expiry_date__range
+        schema:
+          type: array
+          items:
+            type: string
+            format: date
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: expiry_date__year
+        schema:
+          type: number
+      - in: query
+        name: farmer_name
+        schema:
+          type: string
+      - in: query
+        name: harvested_date__day
+        schema:
+          type: number
+      - in: query
+        name: harvested_date__gt
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: harvested_date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: harvested_date__iexact
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: harvested_date__lt
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: harvested_date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: harvested_date__month
+        schema:
+          type: number
+      - in: query
+        name: harvested_date__range
+        schema:
+          type: array
+          items:
+            type: string
+            format: date
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: harvested_date__year
+        schema:
+          type: number
+      - in: query
+        name: hectares__gt
+        schema:
+          type: number
+      - in: query
+        name: hectares__gte
+        schema:
+          type: number
+      - in: query
+        name: hectares__iexact
+        schema:
+          type: number
+      - in: query
+        name: hectares__lt
+        schema:
+          type: number
+      - in: query
+        name: hectares__lte
+        schema:
+          type: number
+      - in: query
+        name: hectares__range
+        schema:
+          type: array
+          items:
+            type: number
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: price_per_unit__gt
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__gte
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__iexact
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__lt
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__lte
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__range
+        schema:
+          type: array
+          items:
+            type: number
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: quantity__gt
+        schema:
+          type: number
+      - in: query
+        name: quantity__gte
+        schema:
+          type: number
+      - in: query
+        name: quantity__iexact
+        schema:
+          type: number
+      - in: query
+        name: quantity__lt
+        schema:
+          type: number
+      - in: query
+        name: quantity__lte
+        schema:
+          type: number
+      - in: query
+        name: quantity__range
+        schema:
+          type: array
+          items:
+            type: number
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: stored_location__icontains
+        schema:
+          type: string
+      - in: query
+        name: stored_location__iendswith
+        schema:
+          type: string
+      - in: query
+        name: stored_location__iexact
+        schema:
+          type: string
+      - in: query
+        name: stored_location__istartswith
+        schema:
+          type: string
+      - in: query
+        name: unit__gt
+        schema:
+          type: string
+      - in: query
+        name: unit__gte
+        schema:
+          type: string
+      - in: query
+        name: unit__iexact
+        schema:
+          type: string
+      - in: query
+        name: unit__lt
+        schema:
+          type: string
+      - in: query
+        name: unit__lte
+        schema:
+          type: string
+      - in: query
+        name: unit__range
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      tags:
+      - farmer-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStockDetailTableList'
+          description: ''
+    post:
+      operationId: farmer_api_stock_detail_create
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      tags:
+      - farmer-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockDetailTableRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockDetailTableRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockDetailTableRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockDetailTable'
+          description: ''
+  /farmer-api/stock-detail/{id}/:
+    get:
+      operationId: farmer_api_stock_detail_retrieve
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stock detail.
+        required: true
+      tags:
+      - farmer-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockDetailTable'
+          description: ''
+    put:
+      operationId: farmer_api_stock_detail_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stock detail.
+        required: true
+      tags:
+      - farmer-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockDetailTableRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockDetailTableRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockDetailTableRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockDetailTable'
+          description: ''
+    patch:
+      operationId: farmer_api_stock_detail_partial_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stock detail.
+        required: true
+      tags:
+      - farmer-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStockDetailTableRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStockDetailTableRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStockDetailTableRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockDetailTable'
+          description: ''
+  /farmer-api/stock-master/:
+    get:
+      operationId: farmer_api_stock_master_list
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: query
+        name: crop_name
+        schema:
+          type: string
+      - in: query
+        name: farmer_name
+        schema:
+          type: string
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - farmer-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStockMasterList'
+          description: ''
+    post:
+      operationId: farmer_api_stock_master_create
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      tags:
+      - farmer-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockMasterCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockMasterCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockMasterCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockMasterCreate'
+          description: ''
+  /farmer-api/stock-master/{stock_id}/:
+    get:
+      operationId: farmer_api_stock_master_retrieve
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: stock_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stock master.
+        required: true
+      tags:
+      - farmer-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockMasterRetrieve'
+          description: ''
+    put:
+      operationId: farmer_api_stock_master_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: stock_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stock master.
+        required: true
+      tags:
+      - farmer-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockMasterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockMasterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockMasterRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockMaster'
+          description: ''
+    patch:
+      operationId: farmer_api_stock_master_partial_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: stock_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stock master.
+        required: true
+      tags:
+      - farmer-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStockMasterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStockMasterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStockMasterRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockMaster'
+          description: ''
+  /wholesaler-api/stock-detail/:
+    get:
+      operationId: wholesaler_api_stock_detail_list
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: query
+        name: crop_name
+        schema:
+          type: string
+      - in: query
+        name: expiry_date__day
+        schema:
+          type: number
+      - in: query
+        name: expiry_date__gt
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: expiry_date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: expiry_date__iexact
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: expiry_date__lt
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: expiry_date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: expiry_date__month
+        schema:
+          type: number
+      - in: query
+        name: expiry_date__range
+        schema:
+          type: array
+          items:
+            type: string
+            format: date
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: expiry_date__year
+        schema:
+          type: number
+      - in: query
+        name: intake_date__day
+        schema:
+          type: number
+      - in: query
+        name: intake_date__gt
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: intake_date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: intake_date__iexact
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: intake_date__lt
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: intake_date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: intake_date__month
+        schema:
+          type: number
+      - in: query
+        name: intake_date__range
+        schema:
+          type: array
+          items:
+            type: string
+            format: date
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: intake_date__year
+        schema:
+          type: number
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: price_per_unit__gt
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__gte
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__iexact
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__lt
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__lte
+        schema:
+          type: number
+      - in: query
+        name: price_per_unit__range
+        schema:
+          type: array
+          items:
+            type: number
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: quantity__gt
+        schema:
+          type: number
+      - in: query
+        name: quantity__gte
+        schema:
+          type: number
+      - in: query
+        name: quantity__iexact
+        schema:
+          type: number
+      - in: query
+        name: quantity__lt
+        schema:
+          type: number
+      - in: query
+        name: quantity__lte
+        schema:
+          type: number
+      - in: query
+        name: quantity__range
+        schema:
+          type: array
+          items:
+            type: number
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: unit__gt
+        schema:
+          type: string
+      - in: query
+        name: unit__gte
+        schema:
+          type: string
+      - in: query
+        name: unit__iexact
+        schema:
+          type: string
+      - in: query
+        name: unit__lt
+        schema:
+          type: string
+      - in: query
+        name: unit__lte
+        schema:
+          type: string
+      - in: query
+        name: unit__range
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: warehouse_loc__icontains
+        schema:
+          type: string
+      - in: query
+        name: warehouse_loc__iendswith
+        schema:
+          type: string
+      - in: query
+        name: warehouse_loc__iexact
+        schema:
+          type: string
+      - in: query
+        name: warehouse_loc__istartswith
+        schema:
+          type: string
+      - in: query
+        name: wholesaler_name
+        schema:
+          type: string
+      tags:
+      - wholesaler-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStockDetailTableList'
+          description: ''
+    post:
+      operationId: wholesaler_api_stock_detail_create
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      tags:
+      - wholesaler-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockDetailTableRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockDetailTableRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockDetailTableRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockDetailTable'
+          description: ''
+  /wholesaler-api/stock-detail/{id}/:
+    get:
+      operationId: wholesaler_api_stock_detail_retrieve
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stock detail.
+        required: true
+      tags:
+      - wholesaler-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockDetailTable'
+          description: ''
+    put:
+      operationId: wholesaler_api_stock_detail_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stock detail.
+        required: true
+      tags:
+      - wholesaler-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockDetailTableRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockDetailTableRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockDetailTableRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockDetailTable'
+          description: ''
+    patch:
+      operationId: wholesaler_api_stock_detail_partial_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stock detail.
+        required: true
+      tags:
+      - wholesaler-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStockDetailTableRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStockDetailTableRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStockDetailTableRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockDetailTable'
+          description: ''
+  /wholesaler-api/stock-master/:
+    get:
+      operationId: wholesaler_api_stock_master_list
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: query
+        name: crop_name
+        schema:
+          type: string
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: wholesaler_name
+        schema:
+          type: string
+      tags:
+      - wholesaler-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStockMasterList'
+          description: ''
+    post:
+      operationId: wholesaler_api_stock_master_create
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      tags:
+      - wholesaler-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockMasterCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockMasterCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockMasterCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockMasterCreate'
+          description: ''
+  /wholesaler-api/stock-master/{stock_id}/:
+    get:
+      operationId: wholesaler_api_stock_master_retrieve
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: stock_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stock master.
+        required: true
+      tags:
+      - wholesaler-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockMasterRetrieve'
+          description: ''
+    put:
+      operationId: wholesaler_api_stock_master_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: stock_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stock master.
+        required: true
+      tags:
+      - wholesaler-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockMasterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockMasterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockMasterRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockMaster'
+          description: ''
+    patch:
+      operationId: wholesaler_api_stock_master_partial_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: stock_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this stock master.
+        required: true
+      tags:
+      - wholesaler-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStockMasterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStockMasterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStockMasterRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockMaster'
+          description: ''
+  /wholesaler-api/wholesaler/:
+    get:
+      operationId: wholesaler_api_wholesaler_list
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - wholesaler-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedWholesalerList'
+          description: ''
+    post:
+      operationId: wholesaler_api_wholesaler_create
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      tags:
+      - wholesaler-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WholesalerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WholesalerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WholesalerRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wholesaler'
+          description: ''
+  /wholesaler-api/wholesaler/{w_id}/:
+    get:
+      operationId: wholesaler_api_wholesaler_retrieve
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: w_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this wholesaler.
+        required: true
+      tags:
+      - wholesaler-api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wholesaler'
+          description: ''
+    put:
+      operationId: wholesaler_api_wholesaler_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: w_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this wholesaler.
+        required: true
+      tags:
+      - wholesaler-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WholesalerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WholesalerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WholesalerRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wholesaler'
+          description: ''
+    patch:
+      operationId: wholesaler_api_wholesaler_partial_update
+      description: |-
+        This is The common Viewset which will allow specific requests
+        in the viewsets. This is only for Model Viewsets
+      parameters:
+      - in: path
+        name: w_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this wholesaler.
+        required: true
+      tags:
+      - wholesaler-api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWholesalerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWholesalerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWholesalerRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wholesaler'
+          description: ''
 components:
   schemas:
+    CropMaster:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        crop_id:
+          type: integer
+          readOnly: true
+        crop_name:
+          type: string
+          maxLength: 50
+        crop_variety:
+          type: string
+          maxLength: 100
+        photo:
+          type: string
+          format: uri
+          nullable: true
+        description:
+          type: string
+          nullable: true
+      required:
+      - created_at
+      - crop_id
+      - crop_name
+      - crop_variety
+      - updated_at
+    CropMasterRequest:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        crop_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        crop_variety:
+          type: string
+          minLength: 1
+          maxLength: 100
+        photo:
+          type: string
+          format: binary
+          nullable: true
+        description:
+          type: string
+          nullable: true
+      required:
+      - crop_name
+      - crop_variety
     Farmer:
       type: object
       properties:
+        deleted:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
         f_id:
           type: integer
           readOnly: true
@@ -298,9 +2307,6 @@ components:
             only.
           pattern: ^[\w.@+-]+$
           maxLength: 150
-        password:
-          type: string
-          writeOnly: true
         first_name:
           type: string
           maxLength: 50
@@ -331,11 +2337,79 @@ components:
           nullable: true
         aadhar_no:
           type: string
+          pattern: ^[2-9]{1}[0-9]{11}$
+          maxLength: 12
+      required:
+      - aadhar_no
+      - created_at
+      - ekyf_id
+      - f_id
+      - f_phone
+      - first_name
+      - gender
+      - state
+      - sub_district
+      - updated_at
+      - user_name
+    FarmerRequest:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        user_name:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        sub_district:
+          type: string
+          minLength: 1
+          maxLength: 100
+        state:
+          type: string
+          minLength: 1
+          maxLength: 50
+        address:
+          type: string
+          minLength: 1
+          maxLength: 255
+        ekyf_id:
+          type: string
+          minLength: 1
+          maxLength: 15
+        f_phone:
+          type: string
+          minLength: 1
+          pattern: ^[0-9]{10,11}$
+          maxLength: 11
+        f_photo:
+          type: string
+          format: binary
+          nullable: true
+        aadhar_no:
+          type: string
+          minLength: 1
+          pattern: ^[2-9]{1}[0-9]{11}$
           maxLength: 12
       required:
       - aadhar_no
       - ekyf_id
-      - f_id
       - f_phone
       - first_name
       - gender
@@ -351,6 +2425,161 @@ components:
       description: |-
         * `M` - MALE
         * `F` - FEMALE
+    Listing:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        l_id:
+          type: integer
+          readOnly: true
+        qty_available:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        price_per_unit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/StatusFcaEnum'
+        crop_name:
+          type: string
+          readOnly: true
+        farmer_name:
+          type: string
+          readOnly: true
+        stock_detail:
+          type: integer
+      required:
+      - created_at
+      - crop_name
+      - farmer_name
+      - l_id
+      - price_per_unit
+      - qty_available
+      - stock_detail
+      - updated_at
+    ListingRequest:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        qty_available:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        price_per_unit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/StatusFcaEnum'
+        stock_detail:
+          type: integer
+      required:
+      - price_per_unit
+      - qty_available
+      - stock_detail
+    ListingRetrieve:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        l_id:
+          type: integer
+          readOnly: true
+        stock_detail:
+          allOf:
+          - $ref: '#/components/schemas/StockDetailTable'
+          readOnly: true
+        qty_available:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        price_per_unit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/StatusFcaEnum'
+        crop_name:
+          type: string
+          readOnly: true
+        farmer_name:
+          type: string
+          readOnly: true
+      required:
+      - created_at
+      - crop_name
+      - farmer_name
+      - l_id
+      - price_per_unit
+      - qty_available
+      - stock_detail
+      - updated_at
+    LogoutRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - refresh
+    MyTokenObtainPairRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email
+      - password
+    PaginatedCropMasterList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CropMaster'
     PaginatedFarmerList:
       type: object
       required:
@@ -374,7 +2603,109 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Farmer'
+    PaginatedListingList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Listing'
+    PaginatedStockDetailTableList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockDetailTable'
+    PaginatedStockMasterList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockMaster'
+    PaginatedWholesalerList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Wholesaler'
     PasswordResetConfirm:
+      type: object
+      properties:
+        uidb64:
+          type: string
+        token:
+          type: string
+      required:
+      - token
+      - uidb64
+    PasswordResetConfirmRequest:
       type: object
       properties:
         password:
@@ -383,8 +2714,10 @@ components:
           minLength: 8
         uidb64:
           type: string
+          minLength: 1
         token:
           type: string
+          minLength: 1
       required:
       - password
       - token
@@ -397,14 +2730,43 @@ components:
           format: email
       required:
       - email
-    PatchedFarmer:
+    PasswordResetRequestRequest:
       type: object
       properties:
-        f_id:
-          type: integer
-          readOnly: true
+        email:
+          type: string
+          format: email
+          minLength: 1
+      required:
+      - email
+    PatchedCropMasterRequest:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        crop_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        crop_variety:
+          type: string
+          minLength: 1
+          maxLength: 100
+        photo:
+          type: string
+          format: binary
+          nullable: true
+        description:
+          type: string
+          nullable: true
+    PatchedFarmerRequest:
+      type: object
+      properties:
+        deleted:
+          type: boolean
         user_name:
           type: string
+          minLength: 1
           description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
             only.
           pattern: ^[\w.@+-]+$
@@ -412,6 +2774,531 @@ components:
         password:
           type: string
           writeOnly: true
+          minLength: 1
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        sub_district:
+          type: string
+          minLength: 1
+          maxLength: 100
+        state:
+          type: string
+          minLength: 1
+          maxLength: 50
+        address:
+          type: string
+          minLength: 1
+          maxLength: 255
+        ekyf_id:
+          type: string
+          minLength: 1
+          maxLength: 15
+        f_phone:
+          type: string
+          minLength: 1
+          pattern: ^[0-9]{10,11}$
+          maxLength: 11
+        f_photo:
+          type: string
+          format: binary
+          nullable: true
+        aadhar_no:
+          type: string
+          minLength: 1
+          pattern: ^[2-9]{1}[0-9]{11}$
+          maxLength: 12
+    PatchedListingRequest:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        qty_available:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        price_per_unit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        status:
+          $ref: '#/components/schemas/StatusFcaEnum'
+        stock_detail:
+          type: integer
+    PatchedStockDetailTableRequest:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        stock_id:
+          type: integer
+        harvested_date:
+          type: string
+          format: date
+        hectares:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        unit:
+          $ref: '#/components/schemas/UnitEnum'
+        price_per_unit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+        stored_location:
+          type: string
+          nullable: true
+          maxLength: 255
+    PatchedStockMasterRequest:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        crop_id:
+          type: integer
+        farmer_id:
+          type: integer
+    PatchedWholesalerRequest:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        city:
+          type: string
+          minLength: 1
+          maxLength: 100
+        state:
+          type: string
+          minLength: 1
+          maxLength: 50
+        address:
+          type: string
+          minLength: 1
+          maxLength: 255
+        w_phone:
+          type: string
+          minLength: 1
+          pattern: ^[0-9]{10,11}$
+          maxLength: 11
+        w_photo:
+          type: string
+          format: binary
+          nullable: true
+        aadhar_no:
+          type: string
+          minLength: 1
+          pattern: ^[2-9]{1}[0-9]{11}$
+          maxLength: 12
+        gst_no:
+          type: string
+          minLength: 1
+          description: 'Format: 22AAAAA0000A1Z5'
+          pattern: ^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$
+          maxLength: 15
+        business_proof:
+          type: string
+          format: binary
+        business_name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        status:
+          $ref: '#/components/schemas/WholesalerStatusEnum'
+        pan_no:
+          type: string
+          minLength: 1
+          pattern: ^[A-Z]{5}[0-9]{4}[A-Z]{1}$
+          maxLength: 10
+    StatusFcaEnum:
+      enum:
+      - O
+      - R
+      - S
+      type: string
+      description: |-
+        * `O` - Open
+        * `R` - Reserved
+        * `S` - SOLD
+    StockDetail:
+      type: object
+      properties:
+        harvested_date:
+          type: string
+          format: date
+        hectares:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        unit:
+          $ref: '#/components/schemas/UnitEnum'
+        price_per_unit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+        stored_location:
+          type: string
+          nullable: true
+          maxLength: 255
+        total_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,18}(?:\.\d{0,2})?$
+          readOnly: true
+      required:
+      - price_per_unit
+      - quantity
+      - total_price
+      - unit
+    StockDetailRequest:
+      type: object
+      properties:
+        harvested_date:
+          type: string
+          format: date
+        hectares:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        unit:
+          $ref: '#/components/schemas/UnitEnum'
+        price_per_unit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+        stored_location:
+          type: string
+          nullable: true
+          maxLength: 255
+      required:
+      - price_per_unit
+      - quantity
+      - unit
+    StockDetailTable:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        id:
+          type: integer
+          readOnly: true
+        stock_id:
+          type: integer
+        harvested_date:
+          type: string
+          format: date
+        hectares:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        unit:
+          $ref: '#/components/schemas/UnitEnum'
+        price_per_unit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+        stored_location:
+          type: string
+          nullable: true
+          maxLength: 255
+        crop_name:
+          type: string
+          readOnly: true
+        farmer_name:
+          type: string
+          readOnly: true
+        total_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,18}(?:\.\d{0,2})?$
+          readOnly: true
+      required:
+      - created_at
+      - crop_name
+      - farmer_name
+      - id
+      - price_per_unit
+      - quantity
+      - stock_id
+      - total_price
+      - unit
+      - updated_at
+    StockDetailTableRequest:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        stock_id:
+          type: integer
+        harvested_date:
+          type: string
+          format: date
+        hectares:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        unit:
+          $ref: '#/components/schemas/UnitEnum'
+        price_per_unit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+        stored_location:
+          type: string
+          nullable: true
+          maxLength: 255
+      required:
+      - price_per_unit
+      - quantity
+      - stock_id
+      - unit
+    StockMaster:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        stock_id:
+          type: integer
+          readOnly: true
+        crop_name:
+          type: string
+          readOnly: true
+        farmer_name:
+          type: string
+          readOnly: true
+        crop_id:
+          type: integer
+        farmer_id:
+          type: integer
+      required:
+      - created_at
+      - crop_id
+      - crop_name
+      - farmer_id
+      - farmer_name
+      - stock_id
+      - updated_at
+    StockMasterCreate:
+      type: object
+      description: |-
+        StockMasterCreateSerializer is for Only Creating a Stock Because
+        Insertion of Stock Should Be with Stock Items
+      properties:
+        stock_id:
+          type: integer
+          readOnly: true
+        crop_id:
+          type: integer
+        farmer_id:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockDetail'
+      required:
+      - crop_id
+      - farmer_id
+      - items
+      - stock_id
+    StockMasterCreateRequest:
+      type: object
+      description: |-
+        StockMasterCreateSerializer is for Only Creating a Stock Because
+        Insertion of Stock Should Be with Stock Items
+      properties:
+        crop_id:
+          type: integer
+        farmer_id:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockDetailRequest'
+      required:
+      - crop_id
+      - farmer_id
+      - items
+    StockMasterRequest:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        crop_id:
+          type: integer
+        farmer_id:
+          type: integer
+      required:
+      - crop_id
+      - farmer_id
+    StockMasterRetrieve:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        stock_id:
+          type: integer
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockDetail'
+          readOnly: true
+        crop_name:
+          type: string
+          readOnly: true
+        farmer_name:
+          type: string
+          readOnly: true
+      required:
+      - created_at
+      - crop_name
+      - farmer_name
+      - items
+      - stock_id
+      - updated_at
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+      required:
+      - access
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - refresh
+    UnitEnum:
+      enum:
+      - kg
+      - g
+      - TON
+      - Q
+      type: string
+      description: |-
+        * `kg` - Kilograms
+        * `g` - Grams
+        * `TON` - Metric Tons
+        * `Q` - Quintal (100kg)
+    Wholesaler:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        w_id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 150
         first_name:
           type: string
           maxLength: 50
@@ -420,7 +3307,7 @@ components:
           maxLength: 50
         gender:
           $ref: '#/components/schemas/GenderEnum'
-        sub_district:
+        city:
           type: string
           maxLength: 100
         state:
@@ -429,52 +3316,141 @@ components:
         address:
           type: string
           maxLength: 255
-        ekyf_id:
-          type: string
-          maxLength: 15
-        f_phone:
+        w_phone:
           type: string
           pattern: ^[0-9]{10,11}$
           maxLength: 11
-        f_photo:
+        w_photo:
           type: string
           format: uri
           nullable: true
         aadhar_no:
           type: string
+          pattern: ^[2-9]{1}[0-9]{11}$
           maxLength: 12
-    TokenObtainPair:
+        gst_no:
+          type: string
+          description: 'Format: 22AAAAA0000A1Z5'
+          pattern: ^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$
+          maxLength: 15
+        business_proof:
+          type: string
+          format: uri
+        business_name:
+          type: string
+          maxLength: 150
+        status:
+          $ref: '#/components/schemas/WholesalerStatusEnum'
+        pan_no:
+          type: string
+          pattern: ^[A-Z]{5}[0-9]{4}[A-Z]{1}$
+          maxLength: 10
+      required:
+      - aadhar_no
+      - business_name
+      - business_proof
+      - city
+      - created_at
+      - email
+      - first_name
+      - gender
+      - gst_no
+      - pan_no
+      - state
+      - updated_at
+      - w_id
+      - w_phone
+    WholesalerRequest:
       type: object
       properties:
+        deleted:
+          type: boolean
         email:
           type: string
-          writeOnly: true
+          format: email
+          minLength: 1
+          maxLength: 150
         password:
           type: string
           writeOnly: true
-        access:
+          minLength: 1
+        first_name:
           type: string
-          readOnly: true
-        refresh:
+          minLength: 1
+          maxLength: 50
+        last_name:
           type: string
-          readOnly: true
+          minLength: 1
+          maxLength: 50
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        city:
+          type: string
+          minLength: 1
+          maxLength: 100
+        state:
+          type: string
+          minLength: 1
+          maxLength: 50
+        address:
+          type: string
+          minLength: 1
+          maxLength: 255
+        w_phone:
+          type: string
+          minLength: 1
+          pattern: ^[0-9]{10,11}$
+          maxLength: 11
+        w_photo:
+          type: string
+          format: binary
+          nullable: true
+        aadhar_no:
+          type: string
+          minLength: 1
+          pattern: ^[2-9]{1}[0-9]{11}$
+          maxLength: 12
+        gst_no:
+          type: string
+          minLength: 1
+          description: 'Format: 22AAAAA0000A1Z5'
+          pattern: ^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$
+          maxLength: 15
+        business_proof:
+          type: string
+          format: binary
+        business_name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        status:
+          $ref: '#/components/schemas/WholesalerStatusEnum'
+        pan_no:
+          type: string
+          minLength: 1
+          pattern: ^[A-Z]{5}[0-9]{4}[A-Z]{1}$
+          maxLength: 10
       required:
-      - access
+      - aadhar_no
+      - business_name
+      - business_proof
+      - city
       - email
+      - first_name
+      - gender
+      - gst_no
+      - pan_no
       - password
-      - refresh
-    TokenRefresh:
-      type: object
-      properties:
-        access:
-          type: string
-          readOnly: true
-        refresh:
-          type: string
-          writeOnly: true
-      required:
-      - access
-      - refresh
+      - state
+      - w_phone
+    WholesalerStatusEnum:
+      enum:
+      - V
+      - U
+      type: string
+      description: |-
+        * `V` - Verified
+        * `U` - Unverified
   securitySchemes:
     cookieAuth:
       type: apiKey

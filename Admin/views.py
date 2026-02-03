@@ -90,7 +90,7 @@ class PasswordResetConfirm(generics.GenericAPIView):
 
 class LogoutView(APIView):
     permission_classes = [IsAdminUser]
-
+    serializer_class = LogoutSerializer
     def post(self, request):
         access = request.auth
         refresh = RefreshToken(request.data["refresh"])

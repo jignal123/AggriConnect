@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from .models import Wholesaler
 from .models import Wholesaler, StockDetail, StockMaster
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
@@ -37,8 +36,6 @@ class WholesalerSerializer(serializers.ModelSerializer):
         "business_proof",
         "business_name",
         "status",
-        "stock",
-        "biddings",
         "pan_no"
         )
 
@@ -58,7 +55,6 @@ class WholesalerSerializer(serializers.ModelSerializer):
             validated_data["password"] = password
 
         return super().update(instance, validated_data)
-        return super().update(instance, validated_data)
 
 class StockDetailTableSerializer(serializers.ModelSerializer):
     crop_name = serializers.CharField(read_only=True)
@@ -75,7 +71,6 @@ class StockDetailTableSerializer(serializers.ModelSerializer):
             "quantity",
             "crop_name",
             "price_per_unit",
-            
             "intake_date",
             "expiry_date",
             "warehouse_loc",

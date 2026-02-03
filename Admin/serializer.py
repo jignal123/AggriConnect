@@ -64,3 +64,10 @@ class CropMasterSerializer(serializers.ModelSerializer):
             "photo",
             "description",
         )
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField(write_only=True)
+    class Meta:
+        fields = (
+            "refresh"
+        )
