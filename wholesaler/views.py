@@ -53,12 +53,11 @@ class WholesalerViewSet(CommonViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
     pagination_class = LimitOffsetPagination
+    filterset_class = WholesalerFilter
 
     def get_permissions(self):
         if self.action == "create":
             self.permission_classes = [AllowAny]
-        elif self.action in ("list"):
-            self.permission_classes = [IsAdminUser]
         return super().get_permissions()
 
 class StockDetailTableViewSet(CommonViewSet):
@@ -123,7 +122,7 @@ class StockMasterViewSet(CommonViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     permission_classes = [IsAuthenticated]
-    filterset_class = CommonFilter
+    filterset_class = StockMasterFilter
     search_fields = [
         "crop_id__crop_name",
         "w_id__first_name",

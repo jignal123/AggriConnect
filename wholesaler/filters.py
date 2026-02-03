@@ -1,5 +1,5 @@
 import django_filters
-from .models import StockDetail, Listing, Wholesaler
+from .models import StockDetail, Wholesaler,StockMaster
 
 class CommonFilter(django_filters.FilterSet):
     crop_name = django_filters.CharFilter(field_name="crop_name", lookup_expr="iexact")
@@ -42,7 +42,12 @@ class StockDetailFilter(CommonFilter):
             "warehouse_loc": ["iexact", "icontains", "istartswith", "iendswith"],
         }
 
-
+class StockMasterFilter(CommonFilter):
+    class Meta:
+        model = StockMaster
+        fields = [
+            "stock_id"
+        ]
 
 class WholesalerFilter(django_filters.FilterSet):
     class Meta:

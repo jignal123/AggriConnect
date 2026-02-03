@@ -66,6 +66,9 @@ class Wholesaler(AbstractClassForAll):
         ]
     )
 
+    @property
+    def is_authenticated(self):
+        return True
 
 
 class StockMaster(AbstractClassForAll):
@@ -79,7 +82,7 @@ class StockDetail(AbstractClassForAll):
         GRAM = "g",_("Grams")
         TON = "TON",_("Metric Tons")
         QUINTAL = "Q",_("Quintal (100kg)") 
-    stock_id = models.ForeignKey(StockMaster,on_delete=models.CASCADE)
+    stock_id = models.ForeignKey(StockMaster,on_delete=models.CASCADE,related_name="items")
     intake_date = models.DateField(default=date.today)
     quantity = models.DecimalField(max_digits=8,decimal_places=2)
     unit = models.CharField(max_length=3,choices=Units.choices)
@@ -102,10 +105,18 @@ class Bidding(AbstractClassForAll):
     price_per_unit = models.DecimalField(max_digits=12,decimal_places=2)
     status = models.CharField(max_length=1,choices=Status.choices,default=Status.PENDING)
 
+    class Meta:
+        unique_together = ("l_id","bidder_id")
+
 class Orders(AbstractClassForAll):
+    class Status(models.TextChoices):
+        PENDING_PAYMENT = "Pending",_("Pending Payment")
+        PAYMENT_REVIEW = "Review",_("Payment Under Review")
+        PAID = "Paid",_("Paid")
+        REJECTED = "Rejected",_("Rejected")
     o_id = models.AutoField(primary_key=True)
     b_id = models.ForeignKey(Bidding,on_delete=models.CASCADE)
     order_date = models.DateTimeField(default=date.today)
-    qty = models.DecimalField(max_digits=8,decimal_places=2)
+    status = models.CharField(max_length=9,choices=Status.choices , default= Status.PENDING_PAYMENT)
     price_per_unit = models.DecimalField(max_digits=12,decimal_places=2)
     delivery_date = models.DateTimeField(null=True)

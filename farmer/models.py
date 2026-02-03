@@ -40,7 +40,16 @@ class Farmer(AbstractClassForAll):
     sub_district = models.CharField(max_length=100)
     state = models.CharField(max_length=50)
     address = models.CharField(max_length=255, default="")
-    ekyf_id = models.CharField(max_length=15, unique=True)
+    ekyf_id = models.CharField(
+        max_length=15,
+        unique=True,
+        validators=[
+            RegexValidator(
+                regex=r"/^[a-zA-Z]{2}[0-9]{12}$/",
+                message="Enter Valid 14 digit ekyf ID",
+            )
+        ],
+    )
     f_phone = models.CharField(
         max_length=11,
         validators=[
@@ -53,10 +62,10 @@ class Farmer(AbstractClassForAll):
     f_photo = models.ImageField(upload_to="farmer/", blank=True, null=True)
     aadhar_no = models.CharField(
         max_length=12,
-       validators=[
+        validators=[
             RegexValidator(
                 regex=r"^[2-9]{1}[0-9]{11}$",
-                message="Invalid Adhaar card Number. Please Enter Valid Adhaar card Number"
+                message="Invalid Adhaar card Number. Please Enter Valid Adhaar card Number",
             )
         ],
         unique=True,
@@ -64,10 +73,16 @@ class Farmer(AbstractClassForAll):
     )
     stock = models.ManyToManyField(CropMaster, through="StockMaster")
 
+    @property
+    def is_authenticated(self):
+        return True
+
 
 class StockMaster(AbstractClassForAll):
     stock_id = models.AutoField(primary_key=True)
-    crop_id = models.ForeignKey(CropMaster, on_delete=models.CASCADE,related_name="fcrops")
+    crop_id = models.ForeignKey(
+        CropMaster, on_delete=models.CASCADE, related_name="fcrops"
+    )
     farmer_id = models.ForeignKey(Farmer, on_delete=models.CASCADE)
 
 
@@ -78,7 +93,9 @@ class StockDetail(AbstractClassForAll):
         TON = "TON", _("Metric Tons")
         QUINTAL = "Q", _("Quintal (100kg)")
 
-    stock_id = models.ForeignKey(StockMaster, on_delete=models.CASCADE,related_name="items")
+    stock_id = models.ForeignKey(
+        StockMaster, on_delete=models.CASCADE, related_name="items"
+    )
     harvested_date = models.DateField(default=date.today)
     hectares = models.DecimalField(
         max_digits=8, decimal_places=2, blank=True, null=True
@@ -104,4 +121,4 @@ class Listing(AbstractClassForAll):
     stock_detail = models.ForeignKey(StockDetail, on_delete=models.CASCADE)
     qty_available = models.DecimalField(max_digits=8, decimal_places=2)
     price_per_unit = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=1, choices=Status.choices,default=Status.OPEN)
+    status = models.CharField(max_length=1, choices=Status.choices, default=Status.OPEN)
