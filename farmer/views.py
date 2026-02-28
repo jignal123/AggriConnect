@@ -1,4 +1,4 @@
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status
 from .models import Farmer, StockDetail, StockMaster, Listing
 from .serializer import *
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
@@ -11,7 +11,13 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from wholesaler.models import Bidding, Orders
 from django.db import transaction
+from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.contrib.auth.hashers import check_password
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.cache import cache
+from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.exceptions import InvalidToken
 
 class CommonViewSet(
     mixins.CreateModelMixin,
@@ -258,8 +264,8 @@ class ListingViewSet(CommonViewSet):
         with transaction.atomic():
             instance = self.get_queryset().select_for_update().get(pk=kwargs["pk"])
             old_status = instance.status
-            serializer = self.get_serializer(instance,data=request.data,partial = False)
-            serializer.is_valid(raise_exception = True)
+            serializer = self.get_serializer(instance, data=request.data, partial=False)
+            serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
             instance.refresh_from_db()
             self.__broadcast_if_sold(old_status, instance)
@@ -270,10 +276,79 @@ class ListingViewSet(CommonViewSet):
         with transaction.atomic():
             instance = self.get_queryset().select_for_update().get(pk=kwargs["pk"])
             old_status = instance.status
-            serializer = self.get_serializer(instance,data=request.data,partial = True)
-            serializer.is_valid(raise_exception = True)
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
             instance.refresh_from_db()
             self.__broadcast_if_sold(old_status, instance)
 
             return Response(serializer.data)
+
+
+class LoginView(APIView):
+    serializer_class = LoginSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid(raise_exception=True):
+            validated_data = serializer.validated_data
+            try:
+                farmer = Farmer.objects.get(user_name=validated_data["username"])
+                if check_password(validated_data["password"], farmer.password):
+                    farmer.id = farmer.f_id
+                    token = RefreshToken.for_user(farmer)
+                    token["first_name"] = farmer.first_name
+                    token["last_name"] = farmer.last_name
+                    token["address"] = farmer.address
+                    token["f_photo"] = str(farmer.f_photo)
+                    token["ekyf_id"] = farmer.ekyf_id
+                    token["aadhar_no"] = farmer.aadhar_no
+                    token["f_phone"] = farmer.f_phone
+                    token["gender"] = farmer.gender
+                    token["sub_district"] = farmer.sub_district
+                    token["state"] = farmer.state
+
+                    return Response(
+                        {"refresh": str(token), "access": str(token.access_token)},
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    return Response(
+                        {"message": "Farmer does not exists!"},
+                        status=status.HTTP_401_UNAUTHORIZED,
+                    )
+            except Farmer.DoesNotExist:
+                return Response(
+                    {"message": " Farmer does not exists!"},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = LogoutSerializer
+
+    def post(self, request):
+        access = request.auth
+        refresh = RefreshToken(request.data["refresh"])
+        self.__blacklist_token(refresh)
+        self.__blacklist_token(access)
+        return Response({"details": "Logged out Successfully!"})
+
+    def __blacklist_token(self, token):
+        jti = token.get("jti")
+        exp = token.get("exp")
+        now = token.current_time.timestamp()
+        storetill = int(exp - now)
+        cache.set(f"blacklist({jti})","true",timeout=storetill)
+
+class RedisTokenFarmerRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        refresh = RefreshToken(request.data["refresh"])
+        jti = refresh["jti"]
+
+        if cache.get(f"blacklist({jti})", None):
+            raise InvalidToken({"detail": "Refresh Token is Invalid or expired!"})
+        return super().post(request, *args, **kwargs)
