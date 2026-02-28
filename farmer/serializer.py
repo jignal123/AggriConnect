@@ -235,3 +235,18 @@ class ListingSerializer(serializers.ModelSerializer):
                     )
 
         return data
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(write_only = True)
+    password = serializers.CharField(write_only = True)
+    class Meta:
+        fields = [
+            "username",
+            "password"
+        ]
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField(write_only=True)
+    class Meta:
+        fields = (
+            "refresh"
+        )
