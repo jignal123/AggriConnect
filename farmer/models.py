@@ -45,7 +45,7 @@ class Farmer(AbstractClassForAll):
         unique=True,
         validators=[
             RegexValidator(
-                regex=r"/^[a-zA-Z]{2}[0-9]{12}$/",
+                regex=r"^[a-zA-Z]{2}[0-9]{12}$",
                 message="Enter Valid 14 digit ekyf ID",
             )
         ],
