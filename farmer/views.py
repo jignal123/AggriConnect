@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
-from django.db.models import F
+from django.db.models import F, Subquery, Sum, OuterRef
 from .filters import *
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -18,6 +18,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.cache import cache
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken
+
 
 class CommonViewSet(
     mixins.CreateModelMixin,
@@ -55,7 +56,7 @@ class FarmerViewSet(CommonViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     pagination_class = LimitOffsetPagination
     filterset_class = FarmerFilter
-    search_filter = [
+    search_fields = [
         "f_id",
         "user_name",
         "first_name",
@@ -95,6 +96,11 @@ class StockDetailTableViewSet(CommonViewSet):
     }
     queryset = (
         StockDetail.objects.select_related("stock_id__crop_id", "stock_id__farmer_id")
+        .filter(
+            stock_id__crop_id__deleted=False,
+            stock_id__farmer_id__deleted=False,
+            stock_id__deleted=False,
+        )
         .annotate(**extra_fields)
         .only(*myfields)
     )
@@ -129,9 +135,17 @@ class StockMasterViewSet(CommonViewSet):
     extra_fields = {
         "crop_name": F("crop_id__crop_name"),
         "first_name": F("farmer_id__first_name"),
+        "total_quantity": Subquery(
+            StockDetail.objects.filter(stock_id=OuterRef("pk")).
+            values("stock_id")
+            .annotate(
+                total_quantity = Sum("quantity")
+            ).values("total_quantity")
+        ),
     }
     queryset = (
         StockMaster.objects.select_related("crop_id", "farmer_id")
+        .filter(crop_id__deleted=False, farmer_id__deleted=False)
         .prefetch_related("items")
         .annotate(**extra_fields)
         .only(*myfields)
@@ -161,6 +175,7 @@ class StockMasterViewSet(CommonViewSet):
                 self.myfields.remove("items")
             self.queryset = (
                 StockMaster.objects.select_related("crop_id", "farmer_id")
+                .filter(crop_id__deleted=False, farmer_id__deleted=False)
                 .annotate(**self.extra_fields)
                 .only(*self.myfields)
             )
@@ -181,6 +196,12 @@ class ListingViewSet(CommonViewSet):
     }
     queryset = (
         Listing.objects.select_related("stock_detail")
+        .filter(
+            stock_detail__stock_id__crop_id__deleted=False,
+            stock_detail__stock_id__farmer_id__deleted=False,
+            stock_detail__stock_id__deleted=False,
+            stock_detail__deleted=False,
+        )
         .annotate(**extra_fields)
         .only(*myfields)
     )
@@ -342,7 +363,8 @@ class LogoutView(APIView):
         exp = token.get("exp")
         now = token.current_time.timestamp()
         storetill = int(exp - now)
-        cache.set(f"blacklist({jti})","true",timeout=storetill)
+        cache.set(f"blacklist({jti})", "true", timeout=storetill)
+
 
 class RedisTokenFarmerRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):

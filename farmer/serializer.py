@@ -131,6 +131,7 @@ class StockMasterCreateSerializer(serializers.ModelSerializer):
 class StockMasterSerializer(serializers.ModelSerializer):
     crop_name = serializers.CharField(read_only=True)
     farmer_name = serializers.CharField(read_only=True, source="first_name")
+    total_quantity = serializers.DecimalField(read_only=True ,max_digits=10,decimal_places=2)
 
     class Meta(MetaAbstract):
         model = StockMaster
@@ -140,6 +141,7 @@ class StockMasterSerializer(serializers.ModelSerializer):
             "farmer_name",
             "crop_id",
             "farmer_id",
+            "total_quantity",
         )
 
 
@@ -147,6 +149,7 @@ class StockMasterRetrieveSerializer(serializers.ModelSerializer):
     items = StockDetailSerializer(many=True, read_only=True)
     crop_name = serializers.CharField(read_only=True)
     farmer_name = serializers.CharField(read_only=True, source="first_name")
+    total_quantity = serializers.DecimalField(read_only=True,max_digits=10,decimal_places=2)
 
     class Meta(MetaAbstract):
         model = StockMaster
@@ -155,6 +158,7 @@ class StockMasterRetrieveSerializer(serializers.ModelSerializer):
             "items",
             "crop_name",
             "farmer_name",
+            "total_quantity",
         )
 
 
@@ -246,7 +250,9 @@ class LoginSerializer(serializers.Serializer):
         ]
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField(write_only=True)
+    access = serializers.CharField(read_only=True)
     class Meta:
         fields = (
-            "refresh"
+            "refresh",
+            "access",
         )
