@@ -33,13 +33,17 @@ class FarmerSerializer(serializers.ModelSerializer):
             "state",
             "address",
             "ekyf_id",
+            "aadhar_photo",
+            "farmer_id_photo",
             "f_phone",
             "f_photo",
             "aadhar_no",
         )
+        read_only_fields = MetaAbstract.read_only_fields + (
+            "aadhar_no",
+        )
 
     def create(self, validated_data):
-        print(validated_data)
         password = validated_data.pop("password")
         password = make_password(password)
         validated_data["password"] = password
@@ -224,11 +228,11 @@ class ListingSerializer(serializers.ModelSerializer):
         else:
             if primary:
                 existing_listing = Listing.objects.filter(
-                    ~Q(l_id=primary), stock_detail=stockdetail_id
+                    ~Q(l_id=primary,status = "S"), stock_detail=stockdetail_id
                 ).values("qty_available")
             else:
                 existing_listing = Listing.objects.filter(
-                    stock_detail=stockdetail_id
+                    ~Q(status = "S"),stock_detail=stockdetail_id
                 ).values("qty_available")
             avl_qty = original_stock - data
             for listing in existing_listing:

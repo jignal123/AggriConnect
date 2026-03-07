@@ -18,6 +18,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.cache import cache
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken
+from Admin.extra_func import fetch_aadhaar
 
 
 class CommonViewSet(
@@ -45,6 +46,8 @@ class FarmerViewSet(CommonViewSet):
         "sub_district",
         "state",
         "address",
+        "aadhar_photo",
+        "farmer_id_photo",
         "ekyf_id",
         "f_phone",
         "f_photo",
@@ -75,6 +78,27 @@ class FarmerViewSet(CommonViewSet):
             self.permission_classes = [AllowAny]
         return super().get_permissions()
 
+    def perform_create(self, serializer : FarmerSerializer):
+        with transaction.atomic():
+            instance = serializer.save()
+            if instance.aadhar_photo:
+                aadhar_no = fetch_aadhaar(instance.aadhar_photo.path)
+                if not aadhar_no:
+                    raise serializers.ValidationError({"message":"Invalid Aadhaar image"})
+
+                instance.aadhar_no = aadhar_no
+                instance.save()
+    
+    def perform_update(self, serializer:FarmerSerializer):
+        with transaction.atomic():
+            instance = serializer.save()
+            if "aadhar_photo" in self.request.data:
+                aadhar_no = fetch_aadhaar(instance.aadhar_photo.path)
+                if not aadhar_no:
+                    raise serializers.ValidationError({"message":"Invalid Aadhaar image"})
+
+                instance.aadhar_no = aadhar_no
+                instance.save()
 
 class StockDetailTableViewSet(CommonViewSet):
     myfields = CommonViewSet.myfields + [

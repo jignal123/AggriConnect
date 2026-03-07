@@ -50,6 +50,7 @@ class Wholesaler(AbstractClassForAll):
         unique=True,error_messages={
         "unique": _("Adhaar No Alredy Exist in the site")
     })
+    aadhar_photo = models.ImageField(upload_to="wholesaler/aadhar/",default="")
     business_proof = models.FileField(upload_to="wholesaler/business_proof/")
     business_name = models.CharField(max_length=150)
     status = models.CharField(max_length=1,choices=Status.choices,default=Status.UNVERIFIED)
