@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import viewsets, mixins
 from wholesaler.models import Wholesaler, StockDetail, StockMaster
 from wholesaler.serializer import *
@@ -6,8 +5,12 @@ from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
-from django.db.models import F , Subquery , Sum , OuterRef
+from django.db.models import F, Subquery, Sum, OuterRef
 from .filters import *
+from rest_framework.response import Response
+from farmer.models import StockDetail as FarmerStock
+from rest_framework.views import status
+from Admin.extra_func import fetch_aadhaar
 
 
 class CommonViewSet(
@@ -39,6 +42,7 @@ class WholesalerViewSet(CommonViewSet):
         "w_phone",
         "w_photo",
         "aadhar_no",
+        "aadhar_photo",
         "gst_no",
         "business_proof",
         "business_name",
@@ -67,10 +71,36 @@ class WholesalerViewSet(CommonViewSet):
         "status",
         "pan_no",
     ]
+
     def get_permissions(self):
         if self.action == "create":
             self.permission_classes = [AllowAny]
+        else :
+            self.permission_classes = [IsAuthenticated]
+        
         return super().get_permissions()
+    
+    def perform_create(self, serializer : WholesalerSerializer):
+        with transaction.atomic():
+            instance = serializer.save()
+            if instance.aadhar_photo:
+                aadhar_no = fetch_aadhaar(instance.aadhar_photo.path)
+                if not aadhar_no:
+                    raise serializers.ValidationError({"message":"Invalid Aadhaar image"})
+
+                instance.aadhar_no = aadhar_no
+                instance.save()
+    
+    def perform_update(self, serializer:WholesalerSerializer):
+        with transaction.atomic():
+            instance = serializer.save()
+            if "aadhar_photo" in self.request.data:
+                aadhar_no = fetch_aadhaar(instance.aadhar_photo.path)
+                if not aadhar_no:
+                    raise serializers.ValidationError({"message":"Invalid Aadhaar image"})
+
+                instance.aadhar_no = aadhar_no
+                instance.save()
 
 
 class StockDetailTableViewSet(CommonViewSet):
@@ -111,7 +141,7 @@ class StockDetailTableViewSet(CommonViewSet):
         "price_per_unit",
         "intake_date",
         "expiry_date",
-        "warehouse_loc"
+        "warehouse_loc",
     ]
     ordering_fields = "__all__"
 
@@ -129,16 +159,15 @@ class StockMasterViewSet(CommonViewSet):
         "crop_name": F("crop_id__crop_name"),
         "first_name": F("w_id__first_name"),
         "total_quantity": Subquery(
-            StockDetail.objects.filter(stock_id=OuterRef("pk")).
-            values("stock_id")
-            .annotate(
-                total_quantity = Sum("quantity")
-            ).values("total_quantity")
+            StockDetail.objects.filter(stock_id=OuterRef("pk"))
+            .values("stock_id")
+            .annotate(total_quantity=Sum("quantity"))
+            .values("total_quantity")
         ),
     }
     queryset = (
         StockMaster.objects.select_related("crop_id", "w_id")
-        .filter(crop_id__deleted = False, w_id__deleted = False)
+        .filter(crop_id__deleted=False, w_id__deleted=False)
         .prefetch_related("items")
         .annotate(**extra_fields)
         .only(*myfields)
@@ -168,8 +197,133 @@ class StockMasterViewSet(CommonViewSet):
                 self.myfields.remove("items")
             self.queryset = (
                 StockMaster.objects.select_related("crop_id", "w_id")
-                .filter(crop_id__deleted = False, w_id__deleted = False)
+                .filter(crop_id__deleted=False, w_id__deleted=False)
                 .annotate(**self.extra_fields)
                 .only(*self.myfields)
             )
         return super().get_queryset()
+
+
+class OrderViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    myfields = CommonViewSet.myfields + [
+        "o_id",
+        "b_id",
+        "order_date",
+        "status",
+        "price_per_unit",
+        "delivery_date",
+        "b_id__b_id",
+    ]
+    extra_fields = {
+        "crop_name": F("b_id__l_id__stock_detail__stock_id__crop_id__crop_name"),
+        "bidder_name": F("b_id__bidder_id__business_name"),
+        "first_name": F("b_id__l_id__stock_detail__stock_id__farmer_id__first_name"),
+        "quantity": F("b_id__l_id__qty_available"),
+        "unit": F("b_id__l_id__stock_detail__unit"),
+        "stored_location": F("b_id__l_id__stock_detail__stored_location"),
+    }
+    serializer_class = OrderSerializer
+    queryset = (
+        Orders.objects.select_related(
+            "b_id"
+        ).annotate(**extra_fields)
+        .only(*myfields)
+    )
+    permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
+    filterset_class = OrderFilter
+    search_fields = [
+        "order_date",
+        "status",
+        "price_per_unit",
+        "delivery_date",
+        "b_id__l_id__stock_detail__stock_id__crop_id__crop_name",
+        "b_id__bidder_id__business_name",
+        "b_id__l_id__stock_detail__stock_id__farmer_id__first_name",
+        "b_id__l_id__qty_available",
+        "b_id__l_id__stock_detail__unit",
+        "b_id__l_id__stock_detail__stored_location",
+    ]
+    pagination_class = LimitOffsetPagination
+    ordering_fields = "__all__"
+
+    def get_permissions(self):
+
+        if self.action in ("update", "partial_update"):
+            self.permission_classes = [IsAdminUser]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
+
+    def update(self, request, *args, **kwargs):
+        return self._handle_update(request, partial=False, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        return self._handle_update(request, partial=True, **kwargs)
+
+    def _handle_update(self, request, partial, **kwargs):
+
+        with transaction.atomic():
+
+            instance = (
+                Orders.objects.select_for_update()
+                .select_related(
+                    "b_id",
+                    "b_id__l_id",
+                    "b_id__l_id__stock_detail",
+                    "b_id__l_id__stock_detail__stock_id",
+                    "b_id__bidder_id",
+                )
+                .get(pk=kwargs["pk"])
+            )
+
+            old_status = instance.status
+            if old_status != "Paid":
+                serializer = self.get_serializer(
+                    instance, data=request.data, partial=partial
+                )
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+                self.__update_stock_details_if_paid(old_status, instance)
+            else:
+                return Response({
+                    "message" : "You Can't Edit The Order Which is Paid!"
+                },
+                status= status.HTTP_412_PRECONDITION_FAILED)
+
+            return Response(serializer.data)
+
+    def __update_stock_details_if_paid(self, old_status, instance: Orders):
+        if old_status != "Paid" and instance.status == "Paid":
+
+            bidding = instance.b_id
+            listing = bidding.l_id
+            wholesaler = bidding.bidder_id
+
+            qty = listing.qty_available
+            farmer_stock_detail = listing.stock_detail
+            unit = farmer_stock_detail.unit
+            crop = farmer_stock_detail.stock_id.crop_id
+            price = instance.price_per_unit
+
+            FarmerStock.objects.filter(pk=farmer_stock_detail.pk).update(
+                quantity=F("quantity") - qty
+            )
+
+            w_stock_master, _ = StockMaster.objects.get_or_create(
+                crop_id=crop, w_id=wholesaler
+            )
+            StockDetail.objects.create(
+                stock_id=w_stock_master,
+                quantity=qty,
+                unit=unit,
+                price_per_unit=price,
+                intake_date=instance.order_date,
+                expiry_date=farmer_stock_detail.expiry_date,
+            )

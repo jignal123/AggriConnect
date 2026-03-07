@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_spectacular',
     'silk',
-    'corsheaders',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
@@ -132,10 +132,10 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
-
-# STATICFILES_DIRS = [
-#     BASE_DIR , "assets"
-# ]
+STATIC_URL = "static/"
+STATICFILES_DIRS = [
+    BASE_DIR , "assets"
+]
 MEDIA_ROOT = os.path.join(BASE_DIR,"photos")
 
 AUTH_USER_MODEL = 'Admin.Admin'
@@ -199,21 +199,21 @@ CHANNEL_LAYERS = {
 }
 
 # Tell Django to use our new custom storage backends
-STORAGES = {
-    "default": {
-        "BACKEND": "aggriconnect.storage.MediaStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "aggriconnect.storage.StaticStorage",
-    },
-}
+# STORAGES = {
+#     "default": {
+#         "BACKEND": "aggriconnect.storage.MediaStorage",
+#     },
+#     "staticfiles": {
+#         "BACKEND": "aggriconnect.storage.StaticStorage",
+#     },
+# }
 
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME', 'aggriconnect-staticfiles')
-AWS_S3_REGION_NAME = 'eu-north-1' 
-AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+# AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+# AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+# AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME', 'aggriconnect-staticfiles')
+# AWS_S3_REGION_NAME = 'eu-north-1' 
+# AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 
-# The URLs that will be generated in your templates and API responses
-STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
-MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/photos/'
+# # The URLs that will be generated in your templates and API responses
+# STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
+# MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/photos/'

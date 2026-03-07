@@ -71,6 +71,8 @@ class Farmer(AbstractClassForAll):
         unique=True,
         error_messages={"unique": _("Adhaar No Alredy Exist in the site")},
     )
+    aadhar_photo = models.ImageField(upload_to="farmer/aadhar/",default="")
+    farmer_id_photo = models.ImageField(upload_to="farmer/farmer_id/",default="")
     stock = models.ManyToManyField(CropMaster, through="StockMaster")
 
     @property
