@@ -9,9 +9,13 @@ from django.db.models import F, Subquery, Sum, OuterRef
 from .filters import *
 from rest_framework.response import Response
 from farmer.models import StockDetail as FarmerStock
-from rest_framework.views import status
+from rest_framework.views import status , APIView
 from Admin.extra_func import fetch_aadhaar
-
+from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.cache import cache
+from rest_framework_simplejwt.views  import TokenRefreshView
+from django.contrib.auth.hashers import check_password
 
 class CommonViewSet(
     mixins.CreateModelMixin,
@@ -251,10 +255,9 @@ class OrderViewSet(
     ]
     pagination_class = LimitOffsetPagination
     ordering_fields = "__all__"
-
+    
     def get_permissions(self):
-
-        if self.action in ("update", "partial_update"):
+        if self.action in ["update","partial_update"]:
             self.permission_classes = [IsAdminUser]
         else:
             self.permission_classes = [IsAuthenticated]
@@ -327,3 +330,78 @@ class OrderViewSet(
                 intake_date=instance.order_date,
                 expiry_date=farmer_stock_detail.expiry_date,
             )
+
+class LoginView(APIView):
+    serializer_class = LoginSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid(raise_exception=True):
+            validated_data = serializer.validated_data
+            try:
+                wholesaler = Wholesaler.objects.get(email=validated_data["email"])
+                if check_password(validated_data["password"], wholesaler.password):
+                    wholesaler.id = wholesaler.w_id
+                    token = RefreshToken.for_user(wholesaler)
+                    token["first_name"] = wholesaler.first_name
+                    token["last_name"] = wholesaler.last_name
+                    token["status"] = wholesaler.status
+                    token["pan_no"] = wholesaler.pan_no
+                    token["address"] = wholesaler.address
+                    token["role"] = "wholesaler"
+                    token["w_photo"] = str(wholesaler.w_photo)
+                    token["business_proof"] = str(wholesaler.business_proof)
+                    token["aadhar_photo"] = str(wholesaler.aadhar_photo)
+                    token["aadhar_no"] = wholesaler.aadhar_no
+                    token["w_phone"] = wholesaler.w_phone
+                    token["gender"] = wholesaler.gender
+                    token["city"] = wholesaler.city
+                    token["business_name"] = wholesaler.business_name
+                    token["gst_no"] = wholesaler.gst_no
+                    token["state"] = wholesaler.state
+
+                    return Response(
+                        {"refresh": str(token), "access": str(token.access_token)},
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    return Response(
+                        {"message": "wholesaler does not exists!"},
+                        status=status.HTTP_401_UNAUTHORIZED,
+                    )
+            except Wholesaler.DoesNotExist:
+                return Response(
+                    {"message": " wholesaler does not exists!"},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = LogoutSerializer
+
+    def post(self, request):
+        access = request.auth
+        refresh = RefreshToken(request.data["refresh"])
+        self.__blacklist_token(refresh)
+        self.__blacklist_token(access)
+        return Response({"details": "Logged out Successfully!"})
+
+    def __blacklist_token(self, token):
+        jti = token.get("jti")
+        exp = token.get("exp")
+        now = token.current_time.timestamp()
+        storetill = int(exp - now)
+        cache.set(f"blacklist({jti})", "true", timeout=storetill)
+
+
+class RedisTokenwholesalerRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        refresh = RefreshToken(request.data["refresh"])
+        jti = refresh["jti"]
+
+        if cache.get(f"blacklist({jti})", None):
+            raise InvalidToken({"detail": "Refresh Token is Invalid or expired!"})
+        return super().post(request, *args, **kwargs)

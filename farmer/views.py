@@ -348,6 +348,9 @@ class LoginView(APIView):
                     token["last_name"] = farmer.last_name
                     token["address"] = farmer.address
                     token["f_photo"] = str(farmer.f_photo)
+                    token["aadhar_photo"] = str(farmer.aadhar_photo)
+                    token["farmer_id_photo"] = str(farmer.farmer_id_photo)
+                    token["role"] = "farmer"
                     token["ekyf_id"] = farmer.ekyf_id
                     token["aadhar_no"] = farmer.aadhar_no
                     token["f_phone"] = farmer.f_phone

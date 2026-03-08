@@ -195,3 +195,20 @@ class OrderSerializer(serializers.ModelSerializer):
             "delivery_date",
         )
         read_only_fields = MetaAbstract.read_only_fields + ("b_id", "price_per_unit")
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField(write_only = True)
+    password = serializers.CharField(write_only = True)
+    class Meta:
+        fields = [
+            "email",
+            "password"
+        ]
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField(write_only=True)
+    access = serializers.CharField(read_only=True)
+    class Meta:
+        fields = (
+            "refresh",
+            "access",
+        )
