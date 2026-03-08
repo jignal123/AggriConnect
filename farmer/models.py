@@ -78,7 +78,9 @@ class Farmer(AbstractClassForAll):
     @property
     def is_authenticated(self):
         return True
-
+    @property
+    def is_staff(self):
+        return False
 
 class StockMaster(AbstractClassForAll):
     stock_id = models.AutoField(primary_key=True)
