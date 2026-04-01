@@ -109,7 +109,7 @@ class MyBiddingConsumers(AsyncJsonWebsocketConsumer):
                                 self.group_name, message={"type": type, **result}
                             )
                         else:
-                            await self.send_json(**result)
+                            await self.send_json(content={**result})
                     else:
                         winner_bid = await find_winner_bid(self.listing_id)
                         await self.send_json(content={

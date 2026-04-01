@@ -2,6 +2,7 @@ from channels.db import database_sync_to_async
 from .models import Bidding
 from farmer.models import Listing
 from django.core.cache import cache
+from django.db import IntegrityError
 
 LOCK_TIMEOUT = 3
 
@@ -21,7 +22,9 @@ def add_bid(user, l_id, price):
             .values("price_per_unit")
             .first()
         )
-        org_price = getattr(check,"price_per_unit",int(-1))
+        # print(check)
+        # exit()
+        org_price = check.get("price_per_unit",int(-1))
         
         if org_price >= price:
             return {"success": False, "message": "Bid must be higher than current bid"}
@@ -37,6 +40,11 @@ def add_bid(user, l_id, price):
                 "wholesaler_name": bid.bidder_id.business_name,
                 "bidder_id": bid.bidder_id.w_id
             }
+    except IntegrityError:
+        return {
+            "success": False,
+            "message":"Duplicate Entry!"
+        }
     finally:
         lock.release()
 
