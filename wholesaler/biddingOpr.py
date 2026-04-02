@@ -22,7 +22,7 @@ def add_bid(user, l_id, price):
             .values("price_per_unit")
             .first()
         )
-        # print(check)
+        print(check)
         # exit()
         org_price = check.get("price_per_unit",int(-1))
         
@@ -52,8 +52,8 @@ def add_bid(user, l_id, price):
 @database_sync_to_async
 def update_bid(b_id, price_per_unit):
     bid = Bidding.objects.select_related("bidder_id").get(b_id=b_id)
-    l_id = bid.bidder_id_id
-
+    l_id = bid.l_id
+    
     lock_id = f"bid-{l_id}"
     lock = cache.lock(lock_id, timeout=LOCK_TIMEOUT)
 
@@ -68,7 +68,9 @@ def update_bid(b_id, price_per_unit):
             .values("price_per_unit")
             .first()
         )
-        org_price = getattr(check,"price_per_unit",int(-1))
+        # print(check)
+        # exit()
+        org_price = check.get("price_per_unit",int(-1)) if check!= None else -1
         if org_price >= price_per_unit:
             return {"success": False, "message": "Must be highest bid"}
         else:

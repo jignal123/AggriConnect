@@ -228,13 +228,15 @@ class ListingSerializer(serializers.ModelSerializer):
         else:
             if primary:
                 existing_listing = Listing.objects.filter(
-                    ~Q(l_id=primary,status = "S"), stock_detail=stockdetail_id
+                    ~Q(status = "S"),~Q(l_id=primary), stock_detail=stockdetail_id
                 ).values("qty_available")
             else:
                 existing_listing = Listing.objects.filter(
                     ~Q(status = "S"),stock_detail=stockdetail_id
                 ).values("qty_available")
             avl_qty = original_stock - data
+            # print(avl_qty)
+            # exit()
             for listing in existing_listing:
                 avl_qty -= listing["qty_available"]
                 if avl_qty < 0:
