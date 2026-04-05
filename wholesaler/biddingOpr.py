@@ -91,11 +91,10 @@ def update_bid(b_id, price_per_unit):
 def delete_bid(b_id):
     try:
         bid = Bidding.objects.get(b_id= b_id)
-        bid.deleted = True
-        bid.save()
+        bid.delete()
         return {
             "success": True,
-            "b_id": bid.b_id,
+            "b_id": b_id,
             "message": "Bid deleted!"
         }
     except Bidding.DoesNotExist:

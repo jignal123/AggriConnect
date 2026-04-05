@@ -71,16 +71,18 @@ class Farmer(AbstractClassForAll):
         unique=True,
         error_messages={"unique": _("Adhaar No Alredy Exist in the site")},
     )
-    aadhar_photo = models.ImageField(upload_to="farmer/aadhar/",default="")
-    farmer_id_photo = models.ImageField(upload_to="farmer/farmer_id/",default="")
+    aadhar_photo = models.ImageField(upload_to="farmer/aadhar/", default="")
+    farmer_id_photo = models.ImageField(upload_to="farmer/farmer_id/", default="")
     stock = models.ManyToManyField(CropMaster, through="StockMaster")
 
     @property
     def is_authenticated(self):
         return True
+
     @property
     def is_staff(self):
         return False
+
 
 class StockMaster(AbstractClassForAll):
     stock_id = models.AutoField(primary_key=True)
@@ -126,3 +128,25 @@ class Listing(AbstractClassForAll):
     qty_available = models.DecimalField(max_digits=8, decimal_places=2)
     price_per_unit = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=1, choices=Status.choices, default=Status.OPEN)
+
+
+class PricePrediction(AbstractClassForAll):
+    p_id = models.AutoField(primary_key=True)
+    district = models.CharField(max_length=20)
+    state = models.CharField(max_length=30)
+    commodity = models.CharField(max_length=20)
+    target_date = models.DateField()
+    market_name = models.CharField(max_length=30)
+    variety = models.CharField(max_length=30)
+    grade = models.CharField(max_length=20)
+    predicted_price = models.DecimalField(max_digits=8,decimal_places=2)
+    confidence_low = models.DecimalField(max_digits=8,decimal_places=2)
+    confidence_high = models.DecimalField(max_digits=8,decimal_places=2)
+    price_lag_7d = models.DecimalField(max_digits=8,decimal_places=2)
+    price_lag_14d = models.DecimalField(max_digits=8,decimal_places=2)
+    price_lag_30d = models.DecimalField(max_digits=8,decimal_places=2)
+    price_7d_avg = models.DecimalField(max_digits=8,decimal_places=2)
+    price_30d_avg = models.DecimalField(max_digits=8,decimal_places=2)
+    temp_mean_lag_30d = models.FloatField(max_length=5)
+    rainfall_mm_30d_avg = models.FloatField(max_length=5)
+    rainfall_mm_30d_sum = models.FloatField(max_length=5)

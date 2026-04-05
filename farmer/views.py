@@ -1,7 +1,7 @@
 from rest_framework import viewsets, mixins, status
 from .models import Farmer, StockDetail, StockMaster, Listing
 from .serializer import *
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
@@ -19,7 +19,8 @@ from django.core.cache import cache
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken
 from Admin.extra_func import fetch_aadhaar
-
+from price_predictor.predict import predict_price
+from datetime import datetime
 
 class CommonViewSet(
     mixins.CreateModelMixin,
@@ -78,27 +79,32 @@ class FarmerViewSet(CommonViewSet):
             self.permission_classes = [AllowAny]
         return super().get_permissions()
 
-    def perform_create(self, serializer : FarmerSerializer):
+    def perform_create(self, serializer: FarmerSerializer):
         with transaction.atomic():
             instance = serializer.save()
             if instance.aadhar_photo:
                 aadhar_no = fetch_aadhaar(instance.aadhar_photo.path)
                 if not aadhar_no:
-                    raise serializers.ValidationError({"message":"Invalid Aadhaar image"})
+                    raise serializers.ValidationError(
+                        {"message": "Invalid Aadhaar image"}
+                    )
 
                 instance.aadhar_no = aadhar_no
                 instance.save()
-    
-    def perform_update(self, serializer:FarmerSerializer):
+
+    def perform_update(self, serializer: FarmerSerializer):
         with transaction.atomic():
             instance = serializer.save()
             if "aadhar_photo" in self.request.data:
                 aadhar_no = fetch_aadhaar(instance.aadhar_photo.path)
                 if not aadhar_no:
-                    raise serializers.ValidationError({"message":"Invalid Aadhaar image"})
+                    raise serializers.ValidationError(
+                        {"message": "Invalid Aadhaar image"}
+                    )
 
                 instance.aadhar_no = aadhar_no
                 instance.save()
+
 
 class StockDetailTableViewSet(CommonViewSet):
     myfields = CommonViewSet.myfields + [
@@ -146,6 +152,11 @@ class StockDetailTableViewSet(CommonViewSet):
     ]
     ordering_fields = "__all__"
 
+    def get_queryset(self):
+        if not self.request.user.is_staff:
+            self.queryset.filter(stock_id__farmer_id = self.request.user)
+        return super().get_queryset()
+
 
 class StockMasterViewSet(CommonViewSet):
     myfields = CommonViewSet.myfields + [
@@ -160,11 +171,10 @@ class StockMasterViewSet(CommonViewSet):
         "crop_name": F("crop_id__crop_name"),
         "first_name": F("farmer_id__first_name"),
         "total_quantity": Subquery(
-            StockDetail.objects.filter(stock_id=OuterRef("pk")).
-            values("stock_id")
-            .annotate(
-                total_quantity = Sum("quantity")
-            ).values("total_quantity")
+            StockDetail.objects.filter(stock_id=OuterRef("pk"))
+            .values("stock_id")
+            .annotate(total_quantity=Sum("quantity"))
+            .values("total_quantity")
         ),
     }
     queryset = (
@@ -194,6 +204,8 @@ class StockMasterViewSet(CommonViewSet):
         return super().get_serializer_class()
 
     def get_queryset(self):
+        if not self.request.user.is_staff:
+            self.queryset.filter(farmer_id = self.request.user)
         if self.action == "list":
             if "items" in self.myfields:
                 self.myfields.remove("items")
@@ -245,6 +257,8 @@ class ListingViewSet(CommonViewSet):
     ordering_fields = "__all__"
 
     def get_queryset(self):
+        if not self.request.user.is_staff:
+            self.queryset.filter(stock_detail__stock_id__farmer_id = self.request.user)
         if self.action != "retrieve":
             if "stock_detail__id" not in self.myfields:
                 self.myfields.append("stock_detail__id")
@@ -401,3 +415,86 @@ class RedisTokenFarmerRefreshView(TokenRefreshView):
         if cache.get(f"blacklist({jti})", None):
             raise InvalidToken({"detail": "Refresh Token is Invalid or expired!"})
         return super().post(request, *args, **kwargs)
+
+
+class PricePredictionViewSet(CommonViewSet):
+    myfields = CommonViewSet.myfields + [
+        "predicted_price",
+        "state",
+        "confidence_low",
+        "confidence_high",
+        "district",
+        "commodity",
+        "target_date",
+        "market_name",
+        "variety",
+        "grade",
+    ]
+    queryset = PricePrediction.objects.all()
+    serializer_class = PricePredictorSerializer
+    pagination_class = LimitOffsetPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = [
+        "predicted_price",
+        "state",
+        "confidence_low",
+        "confidence_high",
+        "district",
+        "commodity",
+        "target_date",
+        "market_name",
+        "variety",
+        "grade",
+    ]
+    permission_classes = [IsAuthenticated]
+    filterset_class = PricePredictionFilter
+    ordering_fields = "__all__"
+
+    def create(self, request, *args, **kwargs):
+        # 1. Validate incoming user data via the serializer
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        validated_data = serializer.validated_data
+
+        # 2. Extract the required fields for the ML model
+        district = validated_data.get("district")
+        commodity = validated_data.get("commodity")
+        market_name = validated_data.get("market_name", "Local")
+        variety = validated_data.get("variety", "FAQ")
+        grade = validated_data.get("grade", "FAQ")
+        
+        # Django serializers return 'target_date' as a datetime.date object.
+        # We convert it to a datetime object because weather/lag math needs it.
+        target_date_obj = validated_data.get("target_date")
+        target_datetime = datetime.combine(target_date_obj, datetime.min.time())
+
+        # 3. Call the ML Engine to get predictions and features
+        prediction_result = predict_price(
+            district=district,
+            commodity=commodity,
+            target_date=target_datetime,
+            market_name=market_name,
+            variety=variety,
+            grade=grade
+        )
+
+        # 4. Handle any errors from the ML engine (e.g., district not found)
+        if "error" in prediction_result:
+            return Response(
+                {"error": prediction_result["error"]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 5. Save ALL data (user inputs + ML outputs + background features) into the Database
+        # Because we added read_only_fields in the serializer, we pass the ML results
+        # directly into the save() method as kwargs.
+        instance = serializer.save(**prediction_result)
+
+        # 6. Return the successfully saved record to the user
+        headers = self.get_success_headers(serializer.data)
+        
+        # Add the generated values to the final response (since they are read-only)
+        response_data = serializer.data
+
+        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)

@@ -6,6 +6,7 @@ router.register("farmer",views.FarmerViewSet,basename="farmer")
 router.register("stock-detail",views.StockDetailTableViewSet,basename="stock-detail")
 router.register("stock-master",views.StockMasterViewSet,basename="stock-master")
 router.register("listing",viewset=views.ListingViewSet,basename="listing")
+router.register("price-prediction", viewset=views.PricePredictionViewSet,basename="price-prediction")
 urlpatterns = [
     path("login/",views.LoginView.as_view(),name="login"),
     path("logout/",views.LogoutView.as_view(),name= "logout"),

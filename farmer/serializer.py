@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Farmer, StockDetail, StockMaster, Listing
+from .models import Farmer, StockDetail, StockMaster, Listing, PricePrediction
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from django.db.models import Q
@@ -39,9 +39,7 @@ class FarmerSerializer(serializers.ModelSerializer):
             "f_photo",
             "aadhar_no",
         )
-        read_only_fields = MetaAbstract.read_only_fields + (
-            "aadhar_no",
-        )
+        read_only_fields = MetaAbstract.read_only_fields + ("aadhar_no",)
 
     def create(self, validated_data):
         password = validated_data.pop("password")
@@ -135,7 +133,9 @@ class StockMasterCreateSerializer(serializers.ModelSerializer):
 class StockMasterSerializer(serializers.ModelSerializer):
     crop_name = serializers.CharField(read_only=True)
     farmer_name = serializers.CharField(read_only=True, source="first_name")
-    total_quantity = serializers.DecimalField(read_only=True ,max_digits=10,decimal_places=2)
+    total_quantity = serializers.DecimalField(
+        read_only=True, max_digits=10, decimal_places=2
+    )
 
     class Meta(MetaAbstract):
         model = StockMaster
@@ -153,7 +153,9 @@ class StockMasterRetrieveSerializer(serializers.ModelSerializer):
     items = StockDetailSerializer(many=True, read_only=True)
     crop_name = serializers.CharField(read_only=True)
     farmer_name = serializers.CharField(read_only=True, source="first_name")
-    total_quantity = serializers.DecimalField(read_only=True,max_digits=10,decimal_places=2)
+    total_quantity = serializers.DecimalField(
+        read_only=True, max_digits=10, decimal_places=2
+    )
 
     class Meta(MetaAbstract):
         model = StockMaster
@@ -170,6 +172,7 @@ class ListingRetrieveSerializer(serializers.ModelSerializer):
     stock_detail = StockDetailTableSerializer(read_only=True)
     crop_name = serializers.CharField(read_only=True)
     farmer_name = serializers.CharField(read_only=True, source="first_name")
+
     class Meta(MetaAbstract):
         model = Listing
         fields = MetaAbstract.fields + (
@@ -228,11 +231,11 @@ class ListingSerializer(serializers.ModelSerializer):
         else:
             if primary:
                 existing_listing = Listing.objects.filter(
-                    ~Q(status = "S"),~Q(l_id=primary), stock_detail=stockdetail_id
+                    ~Q(status="S"), ~Q(l_id=primary), stock_detail=stockdetail_id
                 ).values("qty_available")
             else:
                 existing_listing = Listing.objects.filter(
-                    ~Q(status = "S"),stock_detail=stockdetail_id
+                    ~Q(status="S"), stock_detail=stockdetail_id
                 ).values("qty_available")
             avl_qty = original_stock - data
             # print(avl_qty)
@@ -246,19 +249,57 @@ class ListingSerializer(serializers.ModelSerializer):
 
         return data
 
+
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField(write_only = True)
-    password = serializers.CharField(write_only = True)
+    username = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)
+
     class Meta:
-        fields = [
-            "username",
-            "password"
-        ]
+        fields = ["username", "password"]
+
+
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField(write_only=True)
     access = serializers.CharField(read_only=True)
+
     class Meta:
         fields = (
             "refresh",
             "access",
         )
+
+
+class PricePredictorSerializer(serializers.ModelSerializer):
+    class Meta(MetaAbstract):
+        model = PricePrediction
+        fields = MetaAbstract.fields + (
+            "predicted_price",
+            "state",
+            "confidence_low",
+            "confidence_high",
+            "district",
+            "commodity",
+            "target_date",
+            "market_name",
+            "variety",
+            "grade",
+        )
+        read_only_fields = MetaAbstract.read_only_fields + (
+            "predicted_price",
+            "confidence_low",
+            "confidence_high"
+        )
+
+    def update(self, instance, validated_data):
+        validated_data.pop("predicted_price", None)
+        validated_data.pop("state", None)
+        validated_data.pop("confidence_low", None)
+        validated_data.pop("confidence_high", None)
+        validated_data.pop("district", None)
+        validated_data.pop("commodity", None)
+        validated_data.pop("target_date", None)
+        validated_data.pop("market_name", None)
+        validated_data.pop("variety", None)
+        validated_data.pop("grade", None)
+
+        return super().update(instance, validated_data)

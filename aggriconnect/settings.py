@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_spectacular',
     'silk',
+    'price_predictor',
     'corsheaders'
 ]
 

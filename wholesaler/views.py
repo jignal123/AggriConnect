@@ -149,6 +149,11 @@ class StockDetailTableViewSet(CommonViewSet):
     ]
     ordering_fields = "__all__"
 
+    def get_queryset(self):
+        if not self.request.user.is_staff:
+            self.queryset.filter(stock_id__w_id = self.request.user)
+        return super().get_queryset()
+
 
 class StockMasterViewSet(CommonViewSet):
     myfields = CommonViewSet.myfields + [
@@ -196,6 +201,8 @@ class StockMasterViewSet(CommonViewSet):
         return super().get_serializer_class()
 
     def get_queryset(self):
+        if not self.request.user.is_staff:
+            self.queryset.filter(w_id = self.request.user)
         if self.action == "list":
             if "items" in self.myfields:
                 self.myfields.remove("items")
@@ -256,6 +263,11 @@ class OrderViewSet(
     pagination_class = LimitOffsetPagination
     ordering_fields = "__all__"
     
+    def get_queryset(self):
+        if not self.request.user.is_staff:
+            self.queryset.filter(b_id__bidder_id = self.request.user)
+        return super().get_queryset()
+
     def get_permissions(self):
         if self.action in ["update","partial_update"]:
             self.permission_classes = [IsAdminUser]
