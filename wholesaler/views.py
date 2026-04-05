@@ -151,7 +151,7 @@ class StockDetailTableViewSet(CommonViewSet):
 
     def get_queryset(self):
         if not self.request.user.is_staff:
-            self.queryset.filter(stock_id__w_id = self.request.user)
+            self.queryset = self.queryset.filter(stock_id__w_id = self.request.user)
         return super().get_queryset()
 
 
@@ -202,7 +202,7 @@ class StockMasterViewSet(CommonViewSet):
 
     def get_queryset(self):
         if not self.request.user.is_staff:
-            self.queryset.filter(w_id = self.request.user)
+            self.queryset = self.queryset.filter(w_id = self.request.user)
         if self.action == "list":
             if "items" in self.myfields:
                 self.myfields.remove("items")
@@ -265,7 +265,7 @@ class OrderViewSet(
     
     def get_queryset(self):
         if not self.request.user.is_staff:
-            self.queryset.filter(b_id__bidder_id = self.request.user)
+            self.queryset =   self.queryset.filter(b_id__bidder_id = self.request.user)
         return super().get_queryset()
 
     def get_permissions(self):

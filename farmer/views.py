@@ -154,7 +154,7 @@ class StockDetailTableViewSet(CommonViewSet):
 
     def get_queryset(self):
         if not self.request.user.is_staff:
-            self.queryset.filter(stock_id__farmer_id = self.request.user)
+           self.queryset =  self.queryset.filter(stock_id__farmer_id = self.request.user)
         return super().get_queryset()
 
 
@@ -205,7 +205,7 @@ class StockMasterViewSet(CommonViewSet):
 
     def get_queryset(self):
         if not self.request.user.is_staff:
-            self.queryset.filter(farmer_id = self.request.user)
+           self.queryset =  self.queryset.filter(farmer_id = self.request.user)
         if self.action == "list":
             if "items" in self.myfields:
                 self.myfields.remove("items")
@@ -258,7 +258,7 @@ class ListingViewSet(CommonViewSet):
 
     def get_queryset(self):
         if not self.request.user.is_staff:
-            self.queryset.filter(stock_detail__stock_id__farmer_id = self.request.user)
+           self.queryset = self.queryset.filter(stock_detail__stock_id__farmer_id = self.request.user)
         if self.action != "retrieve":
             if "stock_detail__id" not in self.myfields:
                 self.myfields.append("stock_detail__id")
