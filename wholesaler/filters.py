@@ -17,7 +17,7 @@ class StockDetailFilter(CommonFilter):
         model = StockDetail
         fields = {
             "intake_date": [
-                "iexact",
+                "exact",
                 "range",
                 "lt",
                 "gt",
@@ -27,11 +27,11 @@ class StockDetailFilter(CommonFilter):
                 "month",
                 "day",
             ],
-            "quantity": ["iexact", "range", "lt", "gt", "lte", "gte"],
-            "unit": ["iexact", "range", "lt", "gt", "lte", "gte"],
-            "price_per_unit": ["iexact", "range", "lt", "gt", "lte", "gte"],
+            "quantity": ["exact", "range", "lt", "gt", "lte", "gte"],
+            "unit": ["iexact", "icontains", "istartswith", "iendswith"],
+            "price_per_unit": ["exact", "range", "lt", "gt", "lte", "gte"],
             "expiry_date": [
-                "iexact",
+                "exact",
                 "range",
                 "lt",
                 "gt",
