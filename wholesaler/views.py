@@ -208,7 +208,7 @@ class StockMasterViewSet(CommonViewSet):
                 self.myfields.remove("items")
             self.queryset = (
                 StockMaster.objects.select_related("crop_id", "w_id")
-                .filter(crop_id__deleted=False, w_id__deleted=False)
+                .filter(crop_id__deleted=False, w_id__deleted=False,w_id = self.request.user)
                 .annotate(**self.extra_fields)
                 .only(*self.myfields)
             )
