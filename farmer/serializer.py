@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Farmer, StockDetail, StockMaster, Listing, PricePrediction
+from .models import *
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from django.db.models import Q
@@ -303,3 +303,63 @@ class PricePredictorSerializer(serializers.ModelSerializer):
         validated_data.pop("grade", None)
 
         return super().update(instance, validated_data)
+    
+class StateSerializer(serializers.ModelSerializer):
+    class Meta(MetaAbstract):
+        model = StateMaster
+        fields = MetaAbstract.fields + (
+            "state_name",
+        )
+        read_only_fields  = MetaAbstract.read_only_fields + (
+            "state_name",
+        )
+
+class DistrictSerializer(serializers.ModelSerializer):
+    class Meta(MetaAbstract):
+        model = DistrictMaster
+        fields = MetaAbstract.fields + (
+            "district_name",
+        )
+        read_only_fields  = MetaAbstract.read_only_fields + (
+            "district_name",
+        )
+
+class VarietySerializer(serializers.ModelSerializer):
+    class Meta(MetaAbstract):
+        model = VarietyMaster
+        fields = MetaAbstract.fields + (
+            "variety_name",
+        )
+        read_only_fields  = MetaAbstract.read_only_fields + (
+            "variety_name",
+        )
+
+class CommoditySerializer(serializers.ModelSerializer):
+    class Meta(MetaAbstract):
+        model = CommodityMaster
+        fields = MetaAbstract.fields + (
+            "commodity_name",
+        )
+        read_only_fields  = MetaAbstract.read_only_fields + (
+            "commodity_name",
+        )
+
+class GradeSerializer(serializers.ModelSerializer):
+    class Meta(MetaAbstract):
+        model = GradeMaster
+        fields = MetaAbstract.fields + (
+            "grade_name",
+        )
+        read_only_fields  = MetaAbstract.read_only_fields + (
+            "grade_name",
+        )
+
+class MarketSerializer(serializers.ModelSerializer):
+    class Meta(MetaAbstract):
+        model = MarketMaster
+        fields = MetaAbstract.fields + (
+            "market_name",
+        )
+        read_only_fields  = MetaAbstract.read_only_fields + (
+            "market_name",
+        )

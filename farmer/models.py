@@ -150,3 +150,22 @@ class PricePrediction(AbstractClassForAll):
     temp_mean_lag_30d = models.FloatField(max_length=5)
     rainfall_mm_30d_avg = models.FloatField(max_length=5)
     rainfall_mm_30d_sum = models.FloatField(max_length=5)
+
+
+class StateMaster(AbstractClassForAll):
+    state_name = models.CharField(max_length=20)
+
+class DistrictMaster(AbstractClassForAll):
+    district_name = models.CharField(max_length=30)
+
+class CommodityMaster(AbstractClassForAll):
+    commodity_name = models.CharField(max_length=20)
+
+class VarietyMaster(AbstractClassForAll):
+    variety_name = models.CharField(max_length=40)
+
+class GradeMaster(AbstractClassForAll):
+    grade_name = models.CharField(max_length=40)
+
+class MarketMaster(AbstractClassForAll):
+    market_name = models.CharField(max_length=30)

@@ -1,4 +1,4 @@
-from rest_framework import viewsets, mixins, status
+from rest_framework import viewsets, mixins, status , generics
 from .models import Farmer, StockDetail, StockMaster, Listing
 from .serializer import *
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -430,7 +430,7 @@ class PricePredictionViewSet(CommonViewSet):
         "variety",
         "grade",
     ]
-    queryset = PricePrediction.objects.all()
+    queryset = PricePrediction.objects.only(*myfields)
     serializer_class = PricePredictorSerializer
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -498,3 +498,33 @@ class PricePredictionViewSet(CommonViewSet):
         response_data = serializer.data
 
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
+    
+class StateListView(generics.ListAPIView):
+    serializer_class = StateSerializer
+    queryset = StateMaster.objects.all().order_by("state_name")
+    permission_classes = [IsAuthenticated]
+
+class DistrictListView(generics.ListAPIView):
+    serializer_class = DistrictSerializer
+    queryset = DistrictMaster.objects.all().order_by("district_name")
+    permission_classes = [IsAuthenticated]
+
+class VarietyListView(generics.ListAPIView):
+    serializer_class = VarietySerializer
+    queryset = VarietyMaster.objects.all().order_by("variety_name")
+    permission_classes = [IsAuthenticated]
+
+class CommodityListView(generics.ListAPIView):
+    serializer_class = CommoditySerializer
+    queryset = CommodityMaster.objects.all().order_by("commodity_name")
+    permission_classes = [IsAuthenticated]
+
+class GradeListView(generics.ListAPIView):
+    serializer_class = GradeSerializer
+    queryset = GradeMaster.objects.all().order_by("grade_name")
+    permission_classes = [IsAuthenticated]
+
+class MarketListView(generics.ListAPIView):
+    serializer_class = MarketSerializer
+    queryset = MarketMaster.objects.all().order_by("market_name")
+    permission_classes = [IsAuthenticated]
