@@ -204,17 +204,18 @@ class StockMasterViewSet(CommonViewSet):
         return super().get_serializer_class()
 
     def get_queryset(self):
-        if not self.request.user.is_staff:
-           self.queryset =  self.queryset.filter(farmer_id = self.request.user)
+       
         if self.action == "list":
             if "items" in self.myfields:
                 self.myfields.remove("items")
             self.queryset = (
                 StockMaster.objects.select_related("crop_id", "farmer_id")
-                .filter(crop_id__deleted=False, farmer_id__deleted=False ,farmer_id = self.request.user )
+                .filter(crop_id__deleted=False, farmer_id__deleted=False )
                 .annotate(**self.extra_fields)
                 .only(*self.myfields)
             )
+        if not self.request.user.is_staff:
+           self.queryset =  self.queryset.filter(farmer_id = self.request.user)
         return super().get_queryset()
 
 
