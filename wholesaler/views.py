@@ -233,7 +233,7 @@ class OrderViewSet(
     extra_fields = {
         "crop_name": F("b_id__l_id__stock_detail__stock_id__crop_id__crop_name"),
         "bidder_name": F("b_id__bidder_id__business_name"),
-        "first_name": F("b_id__l_id__stock_detail__stock_id__farmer_id__first_name"),
+        "farmer_name": F("b_id__l_id__stock_detail__stock_id__farmer_id__first_name"),
         "quantity": F("b_id__l_id__qty_available"),
         "unit": F("b_id__l_id__stock_detail__unit"),
         "stored_location": F("b_id__l_id__stock_detail__stored_location"),
