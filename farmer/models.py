@@ -136,7 +136,7 @@ class PricePrediction(AbstractClassForAll):
     state = models.CharField(max_length=30)
     commodity = models.CharField(max_length=20)
     target_date = models.DateField()
-    market_name = models.CharField(max_length=30)
+    market_name = models.CharField(max_length=50)
     variety = models.CharField(max_length=30)
     grade = models.CharField(max_length=20)
     predicted_price = models.DecimalField(max_digits=8,decimal_places=2)
@@ -168,4 +168,4 @@ class GradeMaster(AbstractClassForAll):
     grade_name = models.CharField(max_length=40)
 
 class MarketMaster(AbstractClassForAll):
-    market_name = models.CharField(max_length=30)
+    market_name = models.CharField(max_length=50)

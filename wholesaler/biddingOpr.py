@@ -24,7 +24,7 @@ def add_bid(user, l_id, price):
         )
         print(check)
         # exit()
-        org_price = check.get("price_per_unit",int(-1))
+        org_price = check.get("price_per_unit",int(-1)) if check!= None else -1
         
         if org_price >= price:
             return {"success": False, "message": "Bid must be higher than current bid"}

@@ -71,3 +71,22 @@ class LogoutSerializer(serializers.Serializer):
         fields = (
             "refresh"
         )
+
+
+class DailyBreakdownSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    count = serializers.IntegerField()
+
+
+class RegistrationBreakdownSerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    daily_breakdown = DailyBreakdownSerializer(many=True)
+
+
+class DashboardSerializer(serializers.Serializer):
+    farmers = serializers.DictField(child=serializers.IntegerField())
+    wholesalers = serializers.DictField(child=serializers.IntegerField())
+    stock = serializers.DictField()
+    biddings = serializers.DictField(child=serializers.IntegerField())
+    orders = serializers.DictField(child=serializers.IntegerField())
+    registrations = serializers.DictField()
