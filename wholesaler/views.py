@@ -16,6 +16,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.cache import cache
 from rest_framework_simplejwt.views  import TokenRefreshView
 from django.contrib.auth.hashers import check_password
+from django.db import IntegrityError
 
 class CommonViewSet(
     mixins.CreateModelMixin,
@@ -105,6 +106,19 @@ class WholesalerViewSet(CommonViewSet):
 
                 instance.aadhar_no = aadhar_no
                 instance.save()
+
+    def handle_exception(self, exc):
+        """
+        This method is called automatically by DRF when an error occurs.
+        """
+        if isinstance(exc, IntegrityError):
+            return Response(
+                {"error": "Error: Likely a duplicate entry or missing reference.Check your Aadhar"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # For all other errors, use the default DRF behavior
+        return super().handle_exception(exc)
 
 
 class StockDetailTableViewSet(CommonViewSet):
