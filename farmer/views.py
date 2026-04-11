@@ -258,7 +258,7 @@ class ListingViewSet(CommonViewSet):
     ordering_fields = "__all__"
 
     def get_queryset(self):
-        if not self.request.user.is_staff:
+        if isinstance(self.request.user , Farmer):
            self.queryset = self.queryset.filter(stock_detail__stock_id__farmer_id = self.request.user)
         if self.action != "retrieve":
             if "stock_detail__id" not in self.myfields:
