@@ -72,7 +72,7 @@ def fetch_mandi_prices(district, state, commodity, days=45):
     init_params["offset"] = 0
 
     try:
-        response = requests.get(DATA_GOV_BASE_URL, params=init_params, timeout=10)
+        response = requests.get(DATA_GOV_BASE_URL, params=init_params, timeout=50)
         response.raise_for_status()
         data = response.json()
         total_records = int(data.get("total", 0))
