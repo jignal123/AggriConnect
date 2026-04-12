@@ -21,6 +21,8 @@ from rest_framework_simplejwt.exceptions import InvalidToken
 from Admin.extra_func import fetch_aadhaar
 from price_predictor.predict import predict_price
 from datetime import datetime
+import tempfile
+import os
 
 class CommonViewSet(
     mixins.CreateModelMixin,
@@ -79,18 +81,25 @@ class FarmerViewSet(CommonViewSet):
             self.permission_classes = [AllowAny]
         return super().get_permissions()
 
-    def perform_create(self, serializer: FarmerSerializer):
-        with transaction.atomic():
-            instance = serializer.save()
-            if instance.aadhar_photo:
-                aadhar_no = fetch_aadhaar(instance.aadhar_photo.path)
-                if not aadhar_no:
-                    raise serializers.ValidationError(
-                        {"message": "Invalid Aadhaar image"}
-                    )
+    def perform_create(self, serializer):
+        instance = serializer.save()
 
-                instance.aadhar_no = aadhar_no
-                instance.save()
+        if instance.aadhar_photo:
+            # 1. Create the temp file
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+                temp_file.write(instance.aadhar_photo.read())
+                temp_file_path = temp_file.name
+
+            try:
+                # 2. Run your OCR on the temp file
+                aadhar_no = fetch_aadhaar(temp_file_path)
+                if aadhar_no:
+                    instance.aadhar_no = aadhar_no
+                    instance.save()
+            finally:
+                # 3. THIS IS THE REMOVAL CODE
+                if os.path.exists(temp_file_path):
+                    os.remove(temp_file_path) # <
 
     def perform_update(self, serializer: FarmerSerializer):
         with transaction.atomic():
