@@ -88,32 +88,41 @@ class WholesalerViewSet(CommonViewSet):
         return super().get_permissions()
     
     def perform_create(self, serializer):
-        instance = serializer.save()
-
-        if instance.aadhar_photo:
-            # 1. Create the temp file
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
-                temp_file.write(instance.aadhar_photo.read())
-                temp_file_path = temp_file.name
-
-            try:
-                # 2. Run your OCR on the temp file
-                aadhar_no = fetch_aadhaar(temp_file_path)
-                if aadhar_no:
-                    instance.aadhar_no = aadhar_no
-                    instance.save()
-            finally:
-                # 3. THIS IS THE REMOVAL CODE
-                if os.path.exists(temp_file_path):
-                    os.remove(temp_file_path) # <
-    
-    def perform_update(self, serializer:WholesalerSerializer):
         with transaction.atomic():
             instance = serializer.save()
-            if "aadhar_photo" in self.request.data:
-                aadhar_no = fetch_aadhaar(instance.aadhar_photo.path)
+            
+            if instance.aadhar_photo:
+                # 1. Grab the raw bytes directly from the S3 object
+                image_bytes = instance.aadhar_photo.read()
+                
+                # 2. Pass those bytes into your OCR function
+                aadhar_no = fetch_aadhaar(image_bytes)
+                
                 if not aadhar_no:
-                    raise serializers.ValidationError({"message":"Invalid Aadhaar image"})
+                    raise serializers.ValidationError(
+                        {"message": "Invalid Aadhaar image"}
+                    )
+
+                instance.aadhar_no = aadhar_no
+                instance.save()
+    
+    def perform_update(self, serializer):
+        with transaction.atomic():
+            instance = serializer.save()
+            
+            # Only run OCR if a NEW photo was uploaded in this request
+            if "aadhar_photo" in self.request.data and instance.aadhar_photo:
+                
+                # Grab the raw bytes directly from the S3 object in memory
+                image_bytes = instance.aadhar_photo.read()
+                
+                # Pass those bytes into your updated OCR function
+                aadhar_no = fetch_aadhaar(image_bytes)
+                
+                if not aadhar_no:
+                    raise serializers.ValidationError(
+                        {"message": "Invalid Aadhaar image"}
+                    )
 
                 instance.aadhar_no = aadhar_no
                 instance.save()
