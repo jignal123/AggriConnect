@@ -273,6 +273,7 @@ class PricePredictorSerializer(serializers.ModelSerializer):
     class Meta(MetaAbstract):
         model = PricePrediction
         fields = MetaAbstract.fields + (
+            "p_id",
             "predicted_price",
             "state",
             "confidence_low",

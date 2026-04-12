@@ -431,6 +431,7 @@ class RedisTokenFarmerRefreshView(TokenRefreshView):
 
 class PricePredictionViewSet(CommonViewSet):
     myfields = CommonViewSet.myfields + [
+        "p_id",
         "predicted_price",
         "state",
         "confidence_low",
