@@ -100,6 +100,7 @@ class StockDetailSerializer(serializers.ModelSerializer):
             "intake_date",
             "expiry_date",
             "warehouse_loc",
+            "unit",
             "total_price",
         )
 
