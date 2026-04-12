@@ -129,6 +129,7 @@ class StockDetailTableViewSet(CommonViewSet):
         "stock_id__w_id__first_name",
         "quantity",
         "price_per_unit",
+        "unit",
         "intake_date",
         "expiry_date",
         "warehouse_loc",
@@ -158,6 +159,7 @@ class StockDetailTableViewSet(CommonViewSet):
         "quantity",
         "price_per_unit",
         "intake_date",
+        "unit",
         "expiry_date",
         "warehouse_loc",
     ]

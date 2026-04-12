@@ -82,6 +82,7 @@ class StockDetailTableSerializer(serializers.ModelSerializer):
             "expiry_date",
             "warehouse_loc",
             "wholesaler_name",
+            "unit",
             "total_price",
         )
 
