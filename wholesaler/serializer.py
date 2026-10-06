@@ -46,7 +46,7 @@ class WholesalerSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        print(validated_data)
+        # print(validated_data)
         password = validated_data.pop("password")
         password = make_password(password)
         validated_data["password"] = password
